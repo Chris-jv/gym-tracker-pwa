@@ -404,6 +404,46 @@
       color: white;
     }
 
+    .autocomplete-wrap {
+      position: relative;
+    }
+
+    .autocomplete-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #0b1220;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      z-index: 30;
+      max-height: 240px;
+      overflow: auto;
+      padding: 6px;
+    }
+
+    .autocomplete-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--text);
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item:focus {
+      background: rgba(56,189,248,.12);
+    }
+
+    .template-preview-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -586,6 +626,26 @@
     <section id="panel-train" class="tab-panel active">
       <section class="card">
         <div class="section-head">
+          <h2 style="margin:0;">Elegir rutina</h2>
+          <span class="muted small" id="routineQuickCountLabel">0 rutinas disponibles</span>
+        </div>
+        <div class="row">
+          <div class="field" style="grid-column: span 9;">
+            <label for="routineQuickSelect">Rutina guardada</label>
+            <select id="routineQuickSelect">
+              <option value="">Selecciona una rutina…</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column: span 3; justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button id="applySelectedRoutineBtn" class="btn-primary">Cargar rutina</button>
+          </div>
+        </div>
+        <p class="footer-note">Si ya tienes ejercicios en la sesión, la app te preguntará si quieres reemplazarlos o agregar la rutina al final.</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <div class="section-head">
           <h2 style="margin:0;">Sesión actual</h2>
           <div class="toolbar-wrap">
             <button class="btn-primary" id="startSessionBtn">Marcar inicio ahora</button>
@@ -626,26 +686,6 @@
         <p class="footer-note">Puedes corregir el horario y el peso corporal después si no los registraste en el momento exacto.</p>
       </section>
 
-      <section class="card" style="margin-top:16px;">
-        <div class="section-head">
-          <h2 style="margin:0;">Elegir rutina</h2>
-          <span class="muted small" id="routineQuickCountLabel">0 rutinas disponibles</span>
-        </div>
-        <div class="row">
-          <div class="field" style="grid-column: span 9;">
-            <label for="routineQuickSelect">Rutina guardada</label>
-            <select id="routineQuickSelect">
-              <option value="">Selecciona una rutina…</option>
-            </select>
-          </div>
-          <div class="field" style="grid-column: span 3; justify-content:flex-end;">
-            <label>&nbsp;</label>
-            <button id="applySelectedRoutineBtn" class="btn-primary">Cargar rutina</button>
-          </div>
-        </div>
-        <p class="footer-note">Si ya tienes ejercicios en la sesión, la app te preguntará si quieres reemplazarlos o agregar la rutina al final.</p>
-      </section>
-
       <div class="grid grid-2" style="margin-top:16px; align-items:start;">
         <section class="card">
           <div class="collapsible-head">
@@ -655,9 +695,11 @@
           <p class="muted small" style="margin-top:8px;">Úsalo solo cuando necesites agregar o ajustar ejercicios fuera de una rutina ya cargada.</p>
           <div id="exerciseFormWrap" class="hidden" style="margin-top:14px;">
             <div class="row">
-              <div class="field" style="grid-column: span 12;">
+              <div class="field autocomplete-wrap" style="grid-column: span 12;">
                 <label for="exerciseName">Nombre del ejercicio</label>
-                <input id="exerciseName" placeholder="Ej: Press de piernas" />
+                <input id="exerciseName" placeholder="Ej: Press de piernas" autocomplete="off" />
+                <div id="exerciseNameSuggestions" class="autocomplete-menu hidden"></div>
+                <div class="muted small">Si coincide con un ejercicio existente, podrás elegirlo para cargar sus ajustes de máquina e imágenes.</div>
               </div>
             </div>
 
@@ -686,10 +728,15 @@
               <div class="field" style="grid-column: span 2; justify-content:flex-end;"><label>&nbsp;</label><button id="addConfigBtn" class="btn-info">Agregar</button></div>
             </div>
             <div id="configPills" class="pill-row"></div>
+            <div id="templateLoadedNote" class="template-preview-note hidden">Se cargaron datos desde un ejercicio existente.</div>
 
             <h3>Imágenes referenciales</h3>
             <p class="muted small">Las imágenes se comprimen antes de guardarse. Toca una imagen guardada para verla en grande.</p>
             <input id="exerciseImages" type="file" accept="image/*" multiple />
+            <div id="templateImagesSection" class="hidden" style="margin-top:12px;">
+              <div class="muted small"><strong>Imágenes heredadas del ejercicio</strong></div>
+              <div id="templateImagesPreview" class="photo-grid"></div>
+            </div>
 
             <div class="spacer"></div>
             <button class="btn-primary btn-block" id="saveExerciseBtn">Guardar ejercicio</button>
@@ -803,9 +850,11 @@
     let deferredPrompt = null;
     let state = null;
     let pendingConfigs = [];
+    let pendingTemplateImages = [];
 
     const els = {
       exerciseName: document.getElementById('exerciseName'),
+      exerciseNameSuggestions: document.getElementById('exerciseNameSuggestions'),
       exerciseOrder: document.getElementById('exerciseOrder'),
       exerciseWeight: document.getElementById('exerciseWeight'),
       exerciseReps: document.getElementById('exerciseReps'),
@@ -816,6 +865,9 @@
       configKey: document.getElementById('configKey'),
       configValue: document.getElementById('configValue'),
       configPills: document.getElementById('configPills'),
+      templateLoadedNote: document.getElementById('templateLoadedNote'),
+      templateImagesSection: document.getElementById('templateImagesSection'),
+      templateImagesPreview: document.getElementById('templateImagesPreview'),
       exerciseImages: document.getElementById('exerciseImages'),
       exerciseList: document.getElementById('exerciseList'),
       exerciseFormWrap: document.getElementById('exerciseFormWrap'),
@@ -887,6 +939,9 @@
       await applyRoutineToCurrentSession(els.routineQuickSelect.value);
     });
     els.saveSessionTimesBtn.addEventListener('click', saveSessionTimesManually);
+    els.exerciseName.addEventListener('input', renderExerciseNameSuggestions);
+    els.exerciseName.addEventListener('focus', renderExerciseNameSuggestions);
+    els.exerciseName.addEventListener('blur', () => setTimeout(hideExerciseNameSuggestions, 150));
     els.toggleExerciseFormBtn.addEventListener('click', async () => {
       state.ui.isExerciseFormOpen = !state.ui.isExerciseFormOpen;
       await persistAndRender();
@@ -897,6 +952,9 @@
     });
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') closeLightbox();
+    });
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.autocomplete-wrap')) hideExerciseNameSuggestions();
     });
     els.tabButtons.forEach(btn => btn.addEventListener('click', async () => {
       state.ui.activeTab = btn.dataset.tab;
@@ -1067,6 +1125,7 @@
       els.exerciseFormWrap.classList.toggle('hidden', !open);
       els.exerciseFormCaret.classList.toggle('open', open);
       els.toggleExerciseFormBtn.innerHTML = `${open ? 'Ocultar formulario' : 'Mostrar formulario'} <span id="exerciseFormCaret" class="caret ${open ? 'open' : ''}">▾</span>`;
+      // relink current caret reference after innerHTML replacement
       els.exerciseFormCaret = document.getElementById('exerciseFormCaret');
     }
 
@@ -1111,6 +1170,20 @@
       return new Date(value).toISOString();
     }
 
+    function localDateKeyFromDatetimeLocal(value) {
+      if (!value) return null;
+      return value.slice(0, 10);
+    }
+
+    function localDateKeyFromIso(iso) {
+      if (!iso) return null;
+      const date = new Date(iso);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function hasSessionContent(session) {
       return !!(session && (session.startTime || session.endTime || session.bodyweight !== null || (Array.isArray(session.exercises) && session.exercises.length)));
     }
@@ -1134,16 +1207,23 @@
     }
 
     async function saveSessionTimesManually() {
-      const startIso = datetimeLocalToIso(els.sessionStartManual.value);
-      const endIso = datetimeLocalToIso(els.sessionEndManual.value);
+      const startInput = els.sessionStartManual.value;
+      const endInput = els.sessionEndManual.value;
+      const startIso = datetimeLocalToIso(startInput);
+      const endIso = datetimeLocalToIso(endInput);
       const bodyweight = numberOrNull(els.sessionBodyweightInput.value);
       state.currentSession.startTime = startIso;
       state.currentSession.endTime = endIso;
       state.currentSession.bodyweight = bodyweight;
-      const dateSource = startIso || endIso;
-      if (dateSource) {
-        state.currentSession.date = dateSource.slice(0, 10);
+
+      const localDateSource = localDateKeyFromDatetimeLocal(startInput) || localDateKeyFromDatetimeLocal(endInput);
+      if (localDateSource) {
+        state.currentSession.date = localDateSource;
+      } else {
+        const fallbackDate = localDateKeyFromIso(startIso) || localDateKeyFromIso(endIso);
+        if (fallbackDate) state.currentSession.date = fallbackDate;
       }
+
       await persistAndRender();
     }
 
@@ -1161,6 +1241,7 @@
       els.configPills.innerHTML = '';
       if (!pendingConfigs.length) {
         els.configPills.innerHTML = '<span class="muted small">Aún no agregas configuraciones para este ejercicio.</span>';
+        renderExerciseTemplateAssets();
         return;
       }
       pendingConfigs.forEach(cfg => {
@@ -1176,6 +1257,129 @@
         pill.appendChild(btn);
         els.configPills.appendChild(pill);
       });
+      renderExerciseTemplateAssets();
+    }
+
+    function renderExerciseTemplateAssets() {
+      const hasTemplateData = pendingConfigs.length > 0 || pendingTemplateImages.length > 0;
+      els.templateLoadedNote.classList.toggle('hidden', !hasTemplateData);
+      els.templateImagesSection.classList.toggle('hidden', pendingTemplateImages.length === 0);
+      els.templateImagesPreview.innerHTML = pendingTemplateImages.map((img, idx) => `
+        <div class="photo">
+          <img src="${img}" alt="Imagen heredada ${idx + 1}" data-fullsrc="${img}" />
+          <button data-remove-template-image="${idx}">✕</button>
+        </div>
+      `).join('');
+      els.templateImagesPreview.querySelectorAll('img[data-fullsrc]').forEach(img => img.addEventListener('click', () => openLightbox(img.dataset.fullsrc)));
+      els.templateImagesPreview.querySelectorAll('[data-remove-template-image]').forEach(btn => btn.addEventListener('click', () => {
+        pendingTemplateImages = pendingTemplateImages.filter((_, idx) => idx !== Number(btn.dataset.removeTemplateImage));
+        renderExerciseTemplateAssets();
+      }));
+    }
+
+    function normalizeExerciseName(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function getExerciseTemplateScore(exercise) {
+      let score = 0;
+      if (exercise.configs?.length) score += 10;
+      if (exercise.images?.length) score += 10;
+      if (exercise.notes) score += 2;
+      if (exercise.time) score += 1;
+      if (exercise.reps !== null && exercise.reps !== undefined) score += 1;
+      if (exercise.weight !== null && exercise.weight !== undefined) score += 1;
+      return score;
+    }
+
+    function buildExerciseLibraryFromCandidates(candidates) {
+      const map = new Map();
+      candidates.forEach(exercise => {
+        const key = normalizeExerciseName(exercise.name);
+        if (!key) return;
+        const candidate = {
+          name: exercise.name?.trim() || '',
+          notes: exercise.notes || '',
+          configs: Array.isArray(exercise.configs) ? exercise.configs.map(cfg => ({ key: cfg.key, value: cfg.value })) : [],
+          images: Array.isArray(exercise.images) ? [...exercise.images] : [],
+          createdAt: exercise.createdAt || null,
+          time: exercise.time || null,
+          reps: exercise.reps ?? null,
+          weight: exercise.weight ?? null
+        };
+        const score = getExerciseTemplateScore(candidate);
+        const existing = map.get(key);
+        const candidateTime = new Date(candidate.createdAt || 0).getTime();
+        const existingTime = existing ? new Date(existing.createdAt || 0).getTime() : -Infinity;
+        if (!existing || score > existing._score || (score === existing._score && candidateTime > existingTime)) {
+          map.set(key, { ...candidate, _score: score });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+    }
+
+    function getExerciseLibrary() {
+      const candidates = [];
+      state.currentSession.exercises.forEach(exercise => candidates.push(exercise));
+      state.historySessions.forEach(session => session.exercises.forEach(exercise => candidates.push(exercise)));
+      state.routines.forEach(routine => routine.exercises.forEach(exercise => candidates.push(exercise)));
+      return buildExerciseLibraryFromCandidates(candidates);
+    }
+
+    function getExerciseSuggestions(query) {
+      const normalizedQuery = normalizeExerciseName(query);
+      if (!normalizedQuery) return [];
+      return getExerciseLibrary()
+        .filter(exercise => normalizeExerciseName(exercise.name).includes(normalizedQuery))
+        .sort((a, b) => {
+          const aStarts = normalizeExerciseName(a.name).startsWith(normalizedQuery) ? 0 : 1;
+          const bStarts = normalizeExerciseName(b.name).startsWith(normalizedQuery) ? 0 : 1;
+          return aStarts - bStarts || a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+        })
+        .slice(0, 8);
+    }
+
+    function hideExerciseNameSuggestions() {
+      els.exerciseNameSuggestions.innerHTML = '';
+      els.exerciseNameSuggestions.classList.add('hidden');
+    }
+
+    function renderExerciseNameSuggestions() {
+      const query = els.exerciseName.value.trim();
+      if (!query) {
+        hideExerciseNameSuggestions();
+        return;
+      }
+      const suggestions = getExerciseSuggestions(query);
+      if (!suggestions.length) {
+        hideExerciseNameSuggestions();
+        return;
+      }
+      els.exerciseNameSuggestions.innerHTML = suggestions.map(exercise => `
+        <button type="button" class="autocomplete-item" data-template-name="${encodeURIComponent(normalizeExerciseName(exercise.name))}">
+          <div><strong>${escapeHtml(exercise.name)}</strong></div>
+          <div class="tiny muted">${exercise.configs?.length || 0} ajustes · ${exercise.images?.length || 0} imágenes</div>
+        </button>
+      `).join('');
+      els.exerciseNameSuggestions.classList.remove('hidden');
+      els.exerciseNameSuggestions.querySelectorAll('[data-template-name]').forEach(btn => btn.addEventListener('click', () => {
+        const template = getExerciseLibrary().find(exercise => normalizeExerciseName(exercise.name) === decodeURIComponent(btn.dataset.templateName));
+        if (!template) return;
+        els.exerciseName.value = template.name;
+        applyExerciseTemplate(template);
+        hideExerciseNameSuggestions();
+      }));
+    }
+
+    function applyExerciseTemplate(template) {
+      pendingConfigs = Array.isArray(template.configs)
+        ? template.configs.map(cfg => ({ id: cryptoId(), key: cfg.key, value: cfg.value }))
+        : [];
+      pendingTemplateImages = Array.isArray(template.images) ? [...template.images] : [];
+      if (!els.exerciseNotes.value.trim() && template.notes) {
+        els.exerciseNotes.value = template.notes;
+      }
+      renderConfigs();
     }
 
     async function saveExercise() {
@@ -1187,7 +1391,8 @@
       const time = els.exerciseTime.value.trim() || null;
       const sets = numberOrNull(els.exerciseSets.value);
       const notes = els.exerciseNotes.value.trim();
-      const images = await prepareImages(Array.from(els.exerciseImages.files || []));
+      const uploadedImages = await prepareImages(Array.from(els.exerciseImages.files || []));
+      const images = [...pendingTemplateImages, ...uploadedImages];
       state.currentSession.exercises.push({
         id: cryptoId(),
         name,
@@ -1217,6 +1422,8 @@
       els.exerciseNotes.value = '';
       els.exerciseImages.value = '';
       pendingConfigs = [];
+      pendingTemplateImages = [];
+      hideExerciseNameSuggestions();
       renderConfigs();
     }
 
@@ -1978,6 +2185,13 @@
         assert(cloned[0].order === 5, 'cloneExercisesForSession renumera desde el orden indicado');
         const iso = datetimeLocalToIso('2026-04-17T10:30');
         assert(typeof iso === 'string' && iso.includes('T'), 'datetimeLocalToIso genera ISO');
+        assert(localDateKeyFromDatetimeLocal('2026-04-15T20:50') === '2026-04-15', 'localDateKeyFromDatetimeLocal conserva la fecha local');
+        const library = buildExerciseLibraryFromCandidates([
+          { name: 'Press de piernas', configs: [{ key: 'Respaldo', value: '5' }], images: ['img1'], createdAt: '2026-04-17T10:00:00Z' },
+          { name: 'Press de piernas', configs: [], images: [], createdAt: '2026-04-16T10:00:00Z' }
+        ]);
+        assert(library.length === 1, 'buildExerciseLibraryFromCandidates consolida ejercicios repetidos');
+        assert(library[0].images.length === 1, 'buildExerciseLibraryFromCandidates conserva la versión más útil del ejercicio');
         assert(getWeightSeries().length === 0, 'getWeightSeries funciona con historial vacío');
         assert(isLikelyPreviewContext() === ['about:', 'blob:', 'data:'].includes(location.protocol), 'detección de preview consistente');
       } catch (error) {

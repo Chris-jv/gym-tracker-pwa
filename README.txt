@@ -1,14 +1,11 @@
-Gym Tracker PWA - v6 package
+Gym Tracker PWA
 
-Replace these files in the root of your GitHub Pages repo:
+Archivos incluidos:
 - index.html
 - manifest.webmanifest
 - sw.js
 - icon-192.png
 - icon-512.png
 
-This version includes:
-- hidden manual exercise form in Entrenar
-- bodyweight moved to session timing section
-- weight history line chart in Calendario
-- updated service worker cache version v7
+Sube estos archivos a la raíz de tu repo de GitHub Pages y reemplaza los anteriores.
+Luego haz commit, espera a que publique y abre la URL en Chrome Android para que se actualice la app.
