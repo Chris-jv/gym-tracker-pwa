@@ -17,7 +17,6 @@
     :root {
       --bg: #0f172a;
       --panel: #111827;
-      --panel-2: #1f2937;
       --line: #334155;
       --text: #e5e7eb;
       --muted: #94a3b8;
@@ -85,7 +84,6 @@
 
     .grid { display: grid; gap: 16px; }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
     .card {
       background: rgba(17,24,39,.95);
@@ -115,9 +113,9 @@
       color: var(--muted);
     }
 
-    input, textarea, select, button { font: inherit; }
+    input, textarea, button { font: inherit; }
 
-    input, textarea, select {
+    input, textarea {
       width: 100%;
       background: #0b1220;
       color: var(--text);
@@ -129,7 +127,7 @@
 
     textarea { min-height: 88px; resize: vertical; }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus, textarea:focus {
       border-color: var(--accent-2);
       box-shadow: 0 0 0 3px rgba(56,189,248,.12);
     }
@@ -242,13 +240,13 @@
       background: var(--accent);
     }
 
-    .exercise-list, .history-list {
+    .exercise-list, .history-list, .routine-list {
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
 
-    .exercise-card, .history-card {
+    .exercise-card, .history-card, .routine-card {
       border: 1px solid rgba(148,163,184,.16);
       background: linear-gradient(180deg, rgba(31,41,55,.98), rgba(15,23,42,.98));
       border-radius: 20px;
@@ -262,7 +260,7 @@
       box-shadow: 0 0 0 1px rgba(34,197,94,.14) inset;
     }
 
-    .exercise-top, .history-top {
+    .exercise-top, .history-top, .routine-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
@@ -304,6 +302,12 @@
       border: 1px solid rgba(139,92,246,.28);
     }
 
+    .routine-tag {
+      background: rgba(245,158,11,.15);
+      color: #fde68a;
+      border: 1px solid rgba(245,158,11,.28);
+    }
+
     .exercise-actions {
       display: flex;
       flex-wrap: wrap;
@@ -311,7 +315,7 @@
       justify-content: flex-end;
     }
 
-    .exercise-actions button, .history-top button {
+    .exercise-actions button, .history-top button, .routine-top button {
       padding: 8px 10px;
       font-size: .88rem;
     }
@@ -450,13 +454,13 @@
     .hidden { display: none !important; }
 
     @media (max-width: 950px) {
-      .grid-2, .grid-3, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .grid-2, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 640px) {
       .app { padding: 12px 12px 90px; }
       .row { grid-template-columns: 1fr; }
-      .grid-2, .grid-3, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr; }
+      .grid-2, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr; }
       .calendar { gap: 6px; }
       .cal-day { min-height: 52px; font-size: .9rem; }
       .exercise-actions { width: 100%; justify-content: stretch; }
@@ -470,7 +474,7 @@
       <div class="hero-top">
         <div>
           <h1>Gym Tracker Offline+</h1>
-          <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y soporte real para instalación en Android como PWA cuando se publica en HTTPS.</p>
+          <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y una biblioteca separada de rutinas para elegir antes de empezar a entrenar.</p>
         </div>
         <div class="install-box">
           <div class="small"><strong>Modo Android</strong></div>
@@ -486,10 +490,34 @@
       <div class="status-row">
         <span class="status-chip"><span class="dot"></span> <span id="storageStatus">Cargando almacenamiento…</span></span>
         <span class="status-chip" id="installStatus">Esperando requisitos de instalación…</span>
+        <span class="status-chip" id="runtimeStatus">Inicializando…</span>
       </div>
     </section>
 
     <section class="card">
+      <div class="section-head">
+        <h2 style="margin:0;">Rutinas guardadas</h2>
+        <span class="muted small" id="routineCountLabel">0 rutinas</span>
+      </div>
+      <div class="row">
+        <div class="field" style="grid-column: span 4;">
+          <label for="routineName">Nombre de rutina</label>
+          <input id="routineName" placeholder="Ej: Pierna A" />
+        </div>
+        <div class="field" style="grid-column: span 6;">
+          <label for="routineNotes">Notas de rutina</label>
+          <input id="routineNotes" placeholder="Ej: priorizar técnica y tempo controlado" />
+        </div>
+        <div class="field" style="grid-column: span 2; justify-content:flex-end;">
+          <label>&nbsp;</label>
+          <button id="saveRoutineBtn" class="btn-purple">Guardar rutina</button>
+        </div>
+      </div>
+      <p class="footer-note">Arma tu sesión, guarda esa estructura como rutina y luego podrás cargarla cualquier otro día antes de empezar.</p>
+      <div id="routineList" class="routine-list"></div>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
       <div class="section-head">
         <h2 style="margin:0;">Sesión actual</h2>
         <div class="toolbar-wrap">
@@ -506,7 +534,11 @@
         <div class="stat"><div class="label">Ejercicios listos</div><div class="value" id="doneCountLabel">0 / 0</div></div>
         <div class="stat"><div class="label">Peso corporal</div><div class="value" id="bodyweightLabel">—</div></div>
       </div>
-      <p class="footer-note">Cada sesión se puede archivar sin perder el historial. Luego puedes reutilizar ejercicios o sesiones completas.</p>
+      <div class="status-row">
+        <span class="status-chip"><span class="dot"></span> <span id="selectedRoutineLabel">Rutina seleccionada: Ninguna</span></span>
+        <button class="btn-muted" id="clearSelectedRoutineBtn">Quitar selección</button>
+      </div>
+      <p class="footer-note">Puedes elegir una rutina guardada antes de iniciar la sesión. También puedes cambiarla en cualquier momento y seguir ajustando ejercicios manualmente.</p>
     </section>
 
     <div class="grid grid-2" style="margin-top:16px; align-items:start;">
@@ -614,6 +646,13 @@
       exerciseList: document.getElementById('exerciseList'),
       historyList: document.getElementById('historyList'),
       historyCountLabel: document.getElementById('historyCountLabel'),
+      routineList: document.getElementById('routineList'),
+      routineCountLabel: document.getElementById('routineCountLabel'),
+      routineName: document.getElementById('routineName'),
+      routineNotes: document.getElementById('routineNotes'),
+      saveRoutineBtn: document.getElementById('saveRoutineBtn'),
+      selectedRoutineLabel: document.getElementById('selectedRoutineLabel'),
+      clearSelectedRoutineBtn: document.getElementById('clearSelectedRoutineBtn'),
       sessionDateLabel: document.getElementById('sessionDateLabel'),
       sessionStartLabel: document.getElementById('sessionStartLabel'),
       sessionEndLabel: document.getElementById('sessionEndLabel'),
@@ -623,6 +662,7 @@
       calendarTitle: document.getElementById('calendarTitle'),
       storageStatus: document.getElementById('storageStatus'),
       installStatus: document.getElementById('installStatus'),
+      runtimeStatus: document.getElementById('runtimeStatus'),
       installBtn: document.getElementById('installBtn'),
       exportBtn: document.getElementById('exportBtn'),
       importBtn: document.getElementById('importBtn'),
@@ -644,6 +684,8 @@
     els.importBtn.addEventListener('click', () => els.importFile.click());
     els.importFile.addEventListener('change', importBackup);
     els.installBtn.addEventListener('click', installApp);
+    els.saveRoutineBtn.addEventListener('click', saveCurrentSessionAsRoutine);
+    els.clearSelectedRoutineBtn.addEventListener('click', async () => clearSelectedRoutine());
 
     window.addEventListener('beforeinstallprompt', event => {
       event.preventDefault();
@@ -658,9 +700,15 @@
       deferredPrompt = null;
     });
 
-    init();
+    window.addEventListener('load', () => {
+      init().catch(error => {
+        console.error(error);
+        els.runtimeStatus.textContent = 'Error durante la inicialización';
+      });
+    }, { once: true });
 
     async function init() {
+      els.runtimeStatus.textContent = 'Inicializando aplicación';
       try {
         db = await openDB();
         state = await loadState();
@@ -670,16 +718,29 @@
         state = defaultState();
         els.storageStatus.textContent = 'Error en IndexedDB. Usando memoria temporal';
       }
-      await registerServiceWorker();
+
       updateInstallHint();
+      await registerServiceWorkerSafely();
+      runDiagnostics();
       renderAll();
+      els.runtimeStatus.textContent = 'Aplicación lista';
     }
 
     function defaultState() {
       const today = todayKey();
       return {
-        version: 3,
-        currentSession: { id: cryptoId(), date: today, startTime: null, endTime: null, bodyweight: null, exercises: [] },
+        version: 5,
+        routines: [],
+        currentSession: {
+          id: cryptoId(),
+          date: today,
+          startTime: null,
+          endTime: null,
+          bodyweight: null,
+          routineId: null,
+          routineName: null,
+          exercises: []
+        },
         historySessions: [],
         completedDates: [],
         ui: { calendarYear: new Date().getFullYear(), calendarMonth: new Date().getMonth(), sortMode: 'order' }
@@ -691,7 +752,12 @@
       const merged = {
         ...base,
         ...(raw || {}),
-        currentSession: { ...base.currentSession, ...((raw && raw.currentSession) || {}), exercises: Array.isArray(raw?.currentSession?.exercises) ? raw.currentSession.exercises : [] },
+        routines: Array.isArray(raw?.routines) ? raw.routines : [],
+        currentSession: {
+          ...base.currentSession,
+          ...((raw && raw.currentSession) || {}),
+          exercises: Array.isArray(raw?.currentSession?.exercises) ? raw.currentSession.exercises : []
+        },
         historySessions: Array.isArray(raw?.historySessions) ? raw.historySessions : [],
         completedDates: Array.isArray(raw?.completedDates) ? raw.completedDates : [],
         ui: { ...base.ui, ...((raw && raw.ui) || {}) }
@@ -706,7 +772,9 @@
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = () => {
           const database = request.result;
-          if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -753,6 +821,7 @@
       renderConfigs();
       renderExercises();
       renderHistory();
+      renderRoutines();
       renderCalendar();
     }
 
@@ -761,7 +830,9 @@
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    function nowIso() { return new Date().toISOString(); }
+    function nowIso() {
+      return new Date().toISOString();
+    }
 
     function formatDateTime(iso) {
       if (!iso) return '—';
@@ -776,6 +847,11 @@
     function formatFullDate(key) {
       const [y, m, d] = key.split('-').map(Number);
       return new Date(y, m - 1, d).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function formatShortDateTime(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
     function hasSessionContent(session) {
@@ -795,6 +871,7 @@
       els.doneCountLabel.textContent = `${doneCount} / ${session.exercises.length}`;
       els.bodyweightLabel.textContent = session.bodyweight !== null ? `${session.bodyweight} kg` : '—';
       els.bodyweightInput.value = session.bodyweight ?? '';
+      els.selectedRoutineLabel.textContent = `Rutina seleccionada: ${session.routineName || 'Ninguna'}`;
     }
 
     function addPendingConfig() {
@@ -839,7 +916,20 @@
       const notes = els.exerciseNotes.value.trim();
       if (bodyweight !== null) state.currentSession.bodyweight = bodyweight;
       const images = await prepareImages(Array.from(els.exerciseImages.files || []));
-      state.currentSession.exercises.push({ id: cryptoId(), name, order: order ?? nextOrder(), weight, reps, sets, notes, configs: [...pendingConfigs], images, done: false, doneAt: null, createdAt: nowIso() });
+      state.currentSession.exercises.push({
+        id: cryptoId(),
+        name,
+        order: order ?? nextOrder(),
+        weight,
+        reps,
+        sets,
+        notes,
+        configs: [...pendingConfigs],
+        images,
+        done: false,
+        doneAt: null,
+        createdAt: nowIso()
+      });
       clearExerciseForm();
       await persistAndRender();
     }
@@ -854,6 +944,11 @@
       els.exerciseImages.value = '';
       pendingConfigs = [];
       renderConfigs();
+    }
+
+    function clearRoutineForm() {
+      els.routineName.value = '';
+      els.routineNotes.value = '';
     }
 
     async function startSession() {
@@ -889,7 +984,16 @@
     }
 
     function createNewCurrentSession() {
-      state.currentSession = { id: cryptoId(), date: todayKey(), startTime: null, endTime: null, bodyweight: null, exercises: [] };
+      state.currentSession = {
+        id: cryptoId(),
+        date: todayKey(),
+        startTime: null,
+        endTime: null,
+        bodyweight: null,
+        routineId: null,
+        routineName: null,
+        exercises: []
+      };
       pendingConfigs = [];
       clearExerciseForm();
     }
@@ -911,15 +1015,128 @@
       state.currentSession.startTime = null;
       state.currentSession.endTime = null;
       state.currentSession.bodyweight = null;
+      state.currentSession.routineId = null;
+      state.currentSession.routineName = null;
       pendingConfigs = [];
       clearExerciseForm();
       await persistAndRender();
     }
 
+    async function clearSelectedRoutine() {
+      state.currentSession.routineId = null;
+      state.currentSession.routineName = null;
+      await persistAndRender();
+    }
+
+    function templateExercisesFromSession(exercises) {
+      return [...exercises]
+        .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+        .map((exercise, index) => {
+          const copy = JSON.parse(JSON.stringify(exercise));
+          return {
+            ...copy,
+            id: cryptoId(),
+            order: exercise.order ?? index + 1,
+            done: false,
+            doneAt: null,
+            createdAt: copy.createdAt || nowIso()
+          };
+        });
+    }
+
+    function cloneExerciseForSession(exercise, forcedOrder = null) {
+      const copy = JSON.parse(JSON.stringify(exercise));
+      copy.id = cryptoId();
+      copy.order = forcedOrder ?? exercise.order ?? 1;
+      copy.done = false;
+      copy.doneAt = null;
+      copy.createdAt = nowIso();
+      return copy;
+    }
+
+    function cloneExercisesForSession(exercises, startOrder = null) {
+      const ordered = [...exercises].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+      if (startOrder === null) {
+        return ordered.map((exercise, index) => cloneExerciseForSession(exercise, exercise.order ?? index + 1));
+      }
+      return ordered.map((exercise, index) => cloneExerciseForSession(exercise, startOrder + index));
+    }
+
+    async function saveCurrentSessionAsRoutine() {
+      const name = els.routineName.value.trim();
+      const notes = els.routineNotes.value.trim();
+      if (!name) return alert('Ingresa un nombre para la rutina.');
+      if (!state.currentSession.exercises.length) return alert('Agrega al menos un ejercicio a la sesión actual antes de guardar una rutina.');
+
+      const existing = state.routines.find(routine => routine.name.toLowerCase() === name.toLowerCase());
+      const exercises = templateExercisesFromSession(state.currentSession.exercises);
+
+      if (existing) {
+        const overwrite = confirm('Ya existe una rutina con ese nombre. ¿Quieres reemplazarla?');
+        if (!overwrite) return;
+        existing.notes = notes;
+        existing.exercises = exercises;
+        existing.updatedAt = nowIso();
+      } else {
+        state.routines.unshift({
+          id: cryptoId(),
+          name,
+          notes,
+          exercises,
+          createdAt: nowIso(),
+          updatedAt: nowIso()
+        });
+      }
+
+      clearRoutineForm();
+      await persistAndRender();
+    }
+
+    async function applyRoutineToCurrentSession(routineId) {
+      const routine = state.routines.find(item => item.id === routineId);
+      if (!routine) return;
+
+      let replaceMode = true;
+      if (state.currentSession.exercises.length > 0) {
+        replaceMode = confirm('¿Quieres reemplazar la sesión actual con esta rutina? Aceptar = reemplazar. Cancelar = agregarla al final.');
+      }
+
+      const clonedExercises = replaceMode
+        ? cloneExercisesForSession(routine.exercises, null)
+        : cloneExercisesForSession(routine.exercises, nextOrder());
+
+      if (replaceMode) {
+        state.currentSession.exercises = clonedExercises;
+        state.currentSession.startTime = null;
+        state.currentSession.endTime = null;
+      } else {
+        state.currentSession.exercises.push(...clonedExercises);
+      }
+
+      state.currentSession.routineId = routine.id;
+      state.currentSession.routineName = routine.name;
+      await persistAndRender();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteRoutine(routineId) {
+      const ok = confirm('Se eliminará esta rutina guardada.');
+      if (!ok) return;
+      state.routines = state.routines.filter(routine => routine.id !== routineId);
+      if (state.currentSession.routineId === routineId) {
+        state.currentSession.routineId = null;
+        state.currentSession.routineName = null;
+      }
+      await persistAndRender();
+    }
+
     function getSortedExercises() {
       const copy = [...state.currentSession.exercises];
-      if (state.ui.sortMode === 'status') copy.sort((a, b) => Number(a.done) - Number(b.done) || (a.order ?? 999) - (b.order ?? 999));
-      else copy.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || new Date(a.createdAt) - new Date(b.createdAt));
+      if (state.ui.sortMode === 'status') {
+        copy.sort((a, b) => Number(a.done) - Number(b.done) || (a.order ?? 999) - (b.order ?? 999));
+      } else {
+        copy.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || new Date(a.createdAt) - new Date(b.createdAt));
+      }
       return copy;
     }
 
@@ -927,48 +1144,69 @@
       const list = els.exerciseList;
       list.innerHTML = '';
       const items = getSortedExercises();
-      if (!items.length) return void(list.innerHTML = '<div class="muted">Todavía no agregas ejercicios para esta sesión.</div>');
-      items.forEach(ex => {
+      if (!items.length) {
+        list.innerHTML = '<div class="muted">Todavía no agregas ejercicios para esta sesión.</div>';
+        return;
+      }
+      items.forEach(exercise => {
         const card = document.createElement('div');
-        card.className = `exercise-card ${ex.done ? 'done' : ''}`;
-        card.innerHTML = exerciseCardHtml(ex, true);
+        card.className = `exercise-card ${exercise.done ? 'done' : ''}`;
+        card.innerHTML = exerciseCardHtml(exercise, 'current');
         list.appendChild(card);
       });
-      bindExerciseCardEvents(list, true);
+      bindExerciseCardEvents(list, 'current');
     }
 
-    function exerciseCardHtml(ex, isCurrentSession) {
-      const configHtml = ex.configs?.length ? ex.configs.map(c => `<div class="config-item"><strong>${escapeHtml(c.key)}</strong><div>${escapeHtml(c.value)}</div></div>`).join('') : '<div class="muted small">Sin configuración de máquina.</div>';
+    function exerciseCardHtml(exercise, mode = 'current') {
+      const isCurrentSession = mode === 'current';
+      const isRoutine = mode === 'routine';
+
+      const configHtml = exercise.configs?.length
+        ? exercise.configs.map(config => `<div class="config-item"><strong>${escapeHtml(config.key)}</strong><div>${escapeHtml(config.value)}</div></div>`).join('')
+        : '<div class="muted small">Sin configuración de máquina.</div>';
+
       const metrics = [
-        { label: 'Peso', value: ex.weight !== null ? `${ex.weight} kg` : '—' },
-        { label: 'Repeticiones', value: ex.reps ?? '—' },
-        { label: 'Series', value: ex.sets ?? '—' },
-        { label: isCurrentSession ? 'Realizado' : 'Último registro', value: ex.doneAt ? formatDateTime(ex.doneAt) : 'Pendiente' }
+        { label: 'Peso', value: exercise.weight !== null ? `${exercise.weight} kg` : '—' },
+        { label: 'Repeticiones', value: exercise.reps ?? '—' },
+        { label: 'Series', value: exercise.sets ?? '—' },
+        { label: isCurrentSession ? 'Realizado' : isRoutine ? 'Orden base' : 'Último registro', value: isCurrentSession ? (exercise.doneAt ? formatDateTime(exercise.doneAt) : 'Pendiente') : isRoutine ? (exercise.order ?? '—') : (exercise.doneAt ? formatDateTime(exercise.doneAt) : 'Pendiente') }
       ];
-      const photos = ex.images?.length ? `<div class="photo-grid">${ex.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" />${isCurrentSession ? `<button data-remove-photo="${ex.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>` : '<div class="muted small" style="margin-top:12px;">Sin imágenes referenciales.</div>';
+
+      const photos = exercise.images?.length
+        ? `<div class="photo-grid">${exercise.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" />${isCurrentSession ? `<button data-remove-photo="${exercise.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>`
+        : '<div class="muted small" style="margin-top:12px;">Sin imágenes referenciales.</div>';
+
+      const modeBadge = isCurrentSession
+        ? ''
+        : isRoutine
+          ? '<span class="badge routine-tag">Rutina</span>'
+          : '<span class="badge history-tag">Histórico</span>';
+
+      const actionButtons = isCurrentSession
+        ? `<button class="btn-primary" data-toggle-done="${exercise.id}">${exercise.done ? 'Desmarcar' : 'Completar'}</button><button class="btn-muted" data-move-up="${exercise.id}">Subir</button><button class="btn-muted" data-move-down="${exercise.id}">Bajar</button><button class="btn-danger" data-delete="${exercise.id}">Eliminar</button>`
+        : `<button class="btn-primary" data-copy-exercise="${encodeURIComponent(JSON.stringify(exercise))}">Copiar a sesión actual</button>`;
+
       return `
         <div class="exercise-top">
           <div>
             <div class="exercise-title">
-              <span class="badge">#${ex.order ?? '-'}</span>
-              <strong>${escapeHtml(ex.name)}</strong>
-              ${ex.done ? '<span class="badge done-tag">Hecho</span>' : ''}
-              ${!isCurrentSession ? '<span class="badge history-tag">Histórico</span>' : ''}
+              <span class="badge">#${exercise.order ?? '-'}</span>
+              <strong>${escapeHtml(exercise.name)}</strong>
+              ${exercise.done ? '<span class="badge done-tag">Hecho</span>' : ''}
+              ${modeBadge}
             </div>
-            <div class="muted small" style="margin-top:6px;">Creado ${new Date(ex.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</div>
+            <div class="muted small" style="margin-top:6px;">Creado ${new Date(exercise.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
-          <div class="exercise-actions">
-            ${isCurrentSession ? `<button class="btn-primary" data-toggle-done="${ex.id}">${ex.done ? 'Desmarcar' : 'Completar'}</button><button class="btn-muted" data-move-up="${ex.id}">Subir</button><button class="btn-muted" data-move-down="${ex.id}">Bajar</button><button class="btn-danger" data-delete="${ex.id}">Eliminar</button>` : `<button class="btn-primary" data-copy-exercise="${encodeURIComponent(JSON.stringify(ex))}">Copiar a sesión actual</button>`}
-          </div>
+          <div class="exercise-actions">${actionButtons}</div>
         </div>
-        <div class="metrics-grid">${metrics.map(m => `<div class="metric-item"><strong>${m.label}</strong><div>${m.value}</div></div>`).join('')}</div>
+        <div class="metrics-grid">${metrics.map(metric => `<div class="metric-item"><strong>${metric.label}</strong><div>${metric.value}</div></div>`).join('')}</div>
         <div style="margin-top:12px;"><strong class="muted small">Configuración de máquina</strong><div class="config-grid" style="margin-top:8px;">${configHtml}</div></div>
-        <div style="margin-top:12px;"><strong class="muted small">Notas</strong><div style="margin-top:6px;">${ex.notes ? escapeHtml(ex.notes) : '<span class="muted">Sin notas.</span>'}</div></div>
+        <div style="margin-top:12px;"><strong class="muted small">Notas</strong><div style="margin-top:6px;">${exercise.notes ? escapeHtml(exercise.notes) : '<span class="muted">Sin notas.</span>'}</div></div>
         <div style="margin-top:12px;"><strong class="muted small">Imágenes</strong>${photos}</div>`;
     }
 
-    function bindExerciseCardEvents(scopeEl, isCurrentSession) {
-      if (isCurrentSession) {
+    function bindExerciseCardEvents(scopeEl, mode) {
+      if (mode === 'current') {
         scopeEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', async () => toggleDone(btn.dataset.toggleDone)));
         scopeEl.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', async () => deleteExercise(btn.dataset.delete)));
         scopeEl.querySelectorAll('[data-move-up]').forEach(btn => btn.addEventListener('click', async () => moveExercise(btn.dataset.moveUp, -1)));
@@ -983,21 +1221,21 @@
     }
 
     async function toggleDone(id) {
-      const ex = state.currentSession.exercises.find(x => x.id === id);
-      if (!ex) return;
-      ex.done = !ex.done;
-      ex.doneAt = ex.done ? nowIso() : null;
+      const exercise = state.currentSession.exercises.find(item => item.id === id);
+      if (!exercise) return;
+      exercise.done = !exercise.done;
+      exercise.doneAt = exercise.done ? nowIso() : null;
       await persistAndRender();
     }
 
     async function deleteExercise(id) {
-      state.currentSession.exercises = state.currentSession.exercises.filter(x => x.id !== id);
+      state.currentSession.exercises = state.currentSession.exercises.filter(item => item.id !== id);
       await persistAndRender();
     }
 
     async function moveExercise(id, direction) {
       const ordered = [...state.currentSession.exercises].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
-      const index = ordered.findIndex(x => x.id === id);
+      const index = ordered.findIndex(item => item.id === id);
       if (index < 0) return;
       const target = index + direction;
       if (target < 0 || target >= ordered.length) return;
@@ -1008,19 +1246,14 @@
     }
 
     async function removePhoto(id, photoIndex) {
-      const ex = state.currentSession.exercises.find(x => x.id === id);
-      if (!ex || !Array.isArray(ex.images)) return;
-      ex.images = ex.images.filter((_, idx) => idx !== photoIndex);
+      const exercise = state.currentSession.exercises.find(item => item.id === id);
+      if (!exercise || !Array.isArray(exercise.images)) return;
+      exercise.images = exercise.images.filter((_, idx) => idx !== photoIndex);
       await persistAndRender();
     }
 
     async function copyExerciseToCurrent(exercise) {
-      const copy = JSON.parse(JSON.stringify(exercise));
-      copy.id = cryptoId();
-      copy.order = nextOrder();
-      copy.done = false;
-      copy.doneAt = null;
-      copy.createdAt = nowIso();
+      const copy = cloneExerciseForSession(exercise, nextOrder());
       state.currentSession.exercises.push(copy);
       await persistAndRender();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1030,53 +1263,94 @@
       const list = els.historyList;
       list.innerHTML = '';
       els.historyCountLabel.textContent = `${state.historySessions.length} sesiones guardadas`;
-      if (!state.historySessions.length) return void(list.innerHTML = '<div class="muted">Todavía no hay sesiones en el historial.</div>');
+      if (!state.historySessions.length) {
+        list.innerHTML = '<div class="muted">Todavía no hay sesiones en el historial.</div>';
+        return;
+      }
       state.historySessions.forEach(session => {
         const card = document.createElement('div');
         card.className = 'history-card';
-        const doneCount = session.exercises.filter(x => x.done).length;
+        const doneCount = session.exercises.filter(item => item.done).length;
         card.innerHTML = `
           <div class="history-top">
             <div>
               <div class="exercise-title"><span class="badge history-tag">${escapeHtml(formatFullDate(session.date))}</span><strong>${session.exercises.length} ejercicios</strong></div>
-              <div class="muted small" style="margin-top:6px;">Inicio ${formatDateTime(session.startTime)} · Fin ${formatDateTime(session.endTime)} · Peso ${session.bodyweight !== null ? `${session.bodyweight} kg` : '—'} · Completados ${doneCount}/${session.exercises.length}</div>
+              <div class="muted small" style="margin-top:6px;">Inicio ${formatDateTime(session.startTime)} · Fin ${formatDateTime(session.endTime)} · Peso ${session.bodyweight !== null ? `${session.bodyweight} kg` : '—'} · Rutina ${escapeHtml(session.routineName || 'Libre')} · Completados ${doneCount}/${session.exercises.length}</div>
             </div>
             <div class="toolbar-wrap"><button class="btn-muted" data-repeat-session="${session.id}">Copiar sesión completa</button><button class="btn-danger" data-delete-history="${session.id}">Eliminar</button></div>
           </div>
-          <details><summary>Ver ejercicios</summary><div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">${session.exercises.map(ex => `<div class="exercise-card ${ex.done ? 'done' : ''}">${exerciseCardHtml(ex, false)}</div>`).join('')}</div></details>`;
+          <details><summary>Ver ejercicios</summary><div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">${session.exercises.map(exercise => `<div class="exercise-card ${exercise.done ? 'done' : ''}">${exerciseCardHtml(exercise, 'history')}</div>`).join('')}</div></details>`;
         list.appendChild(card);
       });
       list.querySelectorAll('[data-delete-history]').forEach(btn => btn.addEventListener('click', async () => deleteHistorySession(btn.dataset.deleteHistory)));
       list.querySelectorAll('[data-repeat-session]').forEach(btn => btn.addEventListener('click', async () => repeatSession(btn.dataset.repeatSession)));
-      bindExerciseCardEvents(list, false);
+      bindExerciseCardEvents(list, 'history');
+    }
+
+    function renderRoutines() {
+      const list = els.routineList;
+      list.innerHTML = '';
+      els.routineCountLabel.textContent = `${state.routines.length} rutinas`;
+      if (!state.routines.length) {
+        list.innerHTML = '<div class="muted">Todavía no guardas rutinas.</div>';
+        return;
+      }
+
+      state.routines.forEach(routine => {
+        const card = document.createElement('div');
+        card.className = 'routine-card';
+        const selected = state.currentSession.routineId === routine.id;
+        card.innerHTML = `
+          <div class="routine-top">
+            <div>
+              <div class="exercise-title">
+                <span class="badge routine-tag">Plantilla</span>
+                <strong>${escapeHtml(routine.name)}</strong>
+                ${selected ? '<span class="badge done-tag">Seleccionada</span>' : ''}
+              </div>
+              <div class="muted small" style="margin-top:6px;">${routine.exercises.length} ejercicios · Actualizada ${formatShortDateTime(routine.updatedAt || routine.createdAt)}</div>
+              <div class="muted small" style="margin-top:4px;">${routine.notes ? escapeHtml(routine.notes) : 'Sin notas.'}</div>
+            </div>
+            <div class="toolbar-wrap">
+              <button class="btn-primary" data-apply-routine="${routine.id}">Usar en sesión actual</button>
+              <button class="btn-danger" data-delete-routine="${routine.id}">Eliminar</button>
+            </div>
+          </div>
+          <details>
+            <summary>Ver ejercicios</summary>
+            <div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">${routine.exercises.map(exercise => `<div class="exercise-card">${exerciseCardHtml(exercise, 'routine')}</div>`).join('')}</div>
+          </details>`;
+        list.appendChild(card);
+      });
+
+      list.querySelectorAll('[data-apply-routine]').forEach(btn => btn.addEventListener('click', async () => applyRoutineToCurrentSession(btn.dataset.applyRoutine)));
+      list.querySelectorAll('[data-delete-routine]').forEach(btn => btn.addEventListener('click', async () => deleteRoutine(btn.dataset.deleteRoutine)));
+      bindExerciseCardEvents(list, 'routine');
     }
 
     async function deleteHistorySession(id) {
       const ok = confirm('Se eliminará esta sesión del historial.');
       if (!ok) return;
-      state.historySessions = state.historySessions.filter(x => x.id !== id);
+      state.historySessions = state.historySessions.filter(item => item.id !== id);
       rebuildCompletedDates();
       await persistAndRender();
     }
 
     async function repeatSession(sessionId) {
-      const session = state.historySessions.find(x => x.id === sessionId);
+      const session = state.historySessions.find(item => item.id === sessionId);
       if (!session) return;
       session.exercises.forEach(exercise => {
-        const copy = JSON.parse(JSON.stringify(exercise));
-        copy.id = cryptoId();
-        copy.order = nextOrder();
-        copy.done = false;
-        copy.doneAt = null;
-        copy.createdAt = nowIso();
+        const copy = cloneExerciseForSession(exercise, nextOrder());
         state.currentSession.exercises.push(copy);
       });
+      state.currentSession.routineId = session.routineId || null;
+      state.currentSession.routineName = session.routineName || null;
       await persistAndRender();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function rebuildCompletedDates() {
-      state.completedDates = [...new Set(state.historySessions.filter(s => s.exercises?.length).map(s => s.date))];
+      state.completedDates = [...new Set(state.historySessions.filter(session => session.exercises?.length).map(session => session.date))];
       if (state.currentSession.exercises.length > 0 && state.currentSession.endTime) addCompletedDate(state.currentSession.date);
     }
 
@@ -1117,7 +1391,7 @@
     function nextOrder() {
       const exercises = state.currentSession.exercises;
       if (!exercises.length) return 1;
-      return Math.max(...exercises.map(x => x.order || 0)) + 1;
+      return Math.max(...exercises.map(item => item.order || 0)) + 1;
     }
 
     function numberOrNull(value) {
@@ -1132,7 +1406,12 @@
     }
 
     function escapeHtml(value) {
-      return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
     async function prepareImages(files) {
@@ -1149,8 +1428,13 @@
           img.onload = () => {
             const canvas = document.createElement('canvas');
             let { width, height } = img;
-            if (width > height && width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
-            else if (height >= width && height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+            if (width > height && width > maxSize) {
+              height = Math.round((height * maxSize) / width);
+              width = maxSize;
+            } else if (height >= width && height > maxSize) {
+              width = Math.round((width * maxSize) / height);
+              height = maxSize;
+            }
             canvas.width = width;
             canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
@@ -1193,25 +1477,64 @@
       }
     }
 
-    async function registerServiceWorker() {
+    function isSecureOriginForSW() {
+      return window.isSecureContext && (
+        location.protocol === 'https:' ||
+        location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1'
+      );
+    }
+
+    function isLikelyPreviewContext() {
+      return location.protocol === 'about:' || location.protocol === 'blob:' || location.protocol === 'data:';
+    }
+
+    async function registerServiceWorkerSafely() {
       if (!('serviceWorker' in navigator)) {
         els.installStatus.textContent = 'Este navegador no soporta service workers';
         return;
       }
+
+      if (isLikelyPreviewContext()) {
+        els.installStatus.textContent = 'Vista previa del editor: se omite service worker aquí';
+        return;
+      }
+
+      if (!isSecureOriginForSW()) {
+        els.installStatus.textContent = 'Necesita HTTPS o localhost para instalación real';
+        return;
+      }
+
       try {
-        const registration = await navigator.serviceWorker.register('./sw.js');
-        if (registration.waiting) els.installStatus.textContent = 'Hay una actualización disponible. Recarga la app.';
+        const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+        if (registration.waiting) {
+          els.installStatus.textContent = 'Hay una actualización disponible. Recarga la app.';
+        } else {
+          els.installStatus.textContent = 'Service worker activo';
+        }
       } catch (error) {
         console.error(error);
-        els.installStatus.textContent = 'No se pudo registrar el service worker';
+        const message = error && error.name === 'InvalidStateError'
+          ? 'Contexto no válido para registrar el service worker'
+          : 'No se pudo registrar el service worker';
+        els.installStatus.textContent = message;
       }
     }
 
     function updateInstallHint() {
-      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-      if (!isSecure) {
+      if (isLikelyPreviewContext()) {
+        els.installStatus.textContent = 'Vista previa del editor: instalación deshabilitada aquí';
+        els.installBtn.disabled = true;
+        return;
+      }
+
+      if (!isSecureOriginForSW()) {
         els.installStatus.textContent = 'Necesita HTTPS o localhost para instalación real';
-      } else if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+        els.installBtn.disabled = true;
+        return;
+      }
+
+      if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
         els.installStatus.textContent = 'La app ya está instalada';
         els.installBtn.disabled = true;
       } else {
@@ -1220,11 +1543,39 @@
     }
 
     async function installApp() {
-      if (!deferredPrompt) return alert('Chrome aún no habilita la instalación. A veces aparece en el menú ⋮ > Instalar app.');
+      if (!deferredPrompt) {
+        return alert('Chrome aún no habilita la instalación. A veces aparece en el menú ⋮ > Instalar app.');
+      }
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
       els.installBtn.disabled = true;
+    }
+
+    function assert(condition, description) {
+      if (!condition) throw new Error(`Test falló: ${description}`);
+    }
+
+    function runDiagnostics() {
+      try {
+        assert(numberOrNull('') === null, 'numberOrNull devuelve null para vacío');
+        assert(numberOrNull('12.5') === 12.5, 'numberOrNull convierte números');
+        assert(escapeHtml('<b>') === '&lt;b&gt;', 'escapeHtml sanitiza HTML');
+        const base = defaultState();
+        assert(Array.isArray(base.currentSession.exercises), 'defaultState crea exercises');
+        assert(Array.isArray(base.routines), 'defaultState crea rutinas');
+        const normalized = normalizeState({ currentSession: { exercises: [{ id: '1' }] }, routines: [{ id: 'r1', name: 'Pierna', exercises: [] }] });
+        assert(Array.isArray(normalized.currentSession.exercises), 'normalizeState conserva exercises');
+        assert(Array.isArray(normalized.routines), 'normalizeState conserva rutinas');
+        const template = templateExercisesFromSession([{ id: 'a', name: 'Press', order: 3, done: true, doneAt: nowIso(), createdAt: nowIso(), configs: [], images: [] }]);
+        assert(template[0].done === false, 'las rutinas no guardan ejercicios como completados');
+        const cloned = cloneExercisesForSession([{ id: 'a', name: 'Press', order: 2, configs: [], images: [], createdAt: nowIso() }], 5);
+        assert(cloned[0].order === 5, 'cloneExercisesForSession renumera desde el orden indicado');
+        assert(isLikelyPreviewContext() === ['about:', 'blob:', 'data:'].includes(location.protocol), 'detección de preview consistente');
+      } catch (error) {
+        console.error(error);
+        els.runtimeStatus.textContent = error.message;
+      }
     }
   </script>
 </body>
