@@ -2,7 +2,7 @@
   "id": "/gym-tracker/",
   "name": "Gym Tracker",
   "short_name": "Gym Tracker",
-  "description": "Registro offline de rutinas de gimnasio con historial, imágenes y calendario.",
+  "description": "Registro offline de rutinas de gimnasio con pestañas, historial, imágenes y calendario.",
   "lang": "es-CL",
   "start_url": "./index.html?source=pwa",
   "scope": "./",

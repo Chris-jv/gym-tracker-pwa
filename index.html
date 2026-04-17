@@ -95,6 +95,31 @@
 
     .card h2, .card h3 { margin-top: 0; }
 
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      background: rgba(17,24,39,.95);
+      border: 1px solid rgba(148,163,184,.16);
+      border-radius: 14px;
+      padding: 12px 10px;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(34,197,94,.22), rgba(56,189,248,.22));
+      border-color: rgba(56,189,248,.38);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
     .row {
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -113,9 +138,11 @@
       color: var(--muted);
     }
 
-    input, textarea, button { font: inherit; }
+    input, textarea, button, select {
+      font: inherit;
+    }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       background: #0b1220;
       color: var(--text);
@@ -127,7 +154,7 @@
 
     textarea { min-height: 88px; resize: vertical; }
 
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--accent-2);
       box-shadow: 0 0 0 3px rgba(56,189,248,.12);
     }
@@ -364,6 +391,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      cursor: zoom-in;
     }
 
     .photo button {
@@ -451,8 +479,6 @@
       line-height: 1.45;
     }
 
-    .hidden { display: none !important; }
-
     .lightbox {
       position: fixed;
       inset: 0;
@@ -464,6 +490,8 @@
       padding: 18px;
     }
 
+    .lightbox.hidden { display: none !important; }
+
     .lightbox img {
       max-width: 100%;
       max-height: 100%;
@@ -471,14 +499,18 @@
       box-shadow: 0 20px 50px rgba(0,0,0,.45);
     }
 
+    .hidden { display: none !important; }
+
     @media (max-width: 950px) {
-      .grid-2, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .grid-2, .summary { grid-template-columns: 1fr 1fr; }
+      .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 640px) {
       .app { padding: 12px 12px 90px; }
       .row { grid-template-columns: 1fr; }
-      .grid-2, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr; }
+      .grid-2, .summary { grid-template-columns: 1fr; }
+      .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .calendar { gap: 6px; }
       .cal-day { min-height: 52px; font-size: .9rem; }
       .exercise-actions { width: 100%; justify-content: stretch; }
@@ -492,7 +524,7 @@
       <div class="hero-top">
         <div>
           <h1>Gym Tracker</h1>
-          <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y una biblioteca separada de rutinas para elegir antes de empezar a entrenar.</p>
+          <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y una biblioteca de rutinas separada para elegir antes de entrenar.</p>
         </div>
         <div class="install-box">
           <div class="small"><strong>Modo Android</strong></div>
@@ -512,99 +544,166 @@
       </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2 style="margin:0;">Rutinas guardadas</h2>
-        <span class="muted small" id="routineCountLabel">0 rutinas</span>
-      </div>
-      <div class="row">
-        <div class="field" style="grid-column: span 4;">
-          <label for="routineName">Nombre de rutina</label>
-          <input id="routineName" placeholder="Ej: Pierna A" />
-        </div>
-        <div class="field" style="grid-column: span 6;">
-          <label for="routineNotes">Notas de rutina</label>
-          <input id="routineNotes" placeholder="Ej: priorizar técnica y tempo controlado" />
-        </div>
-        <div class="field" style="grid-column: span 2; justify-content:flex-end;">
-          <label>&nbsp;</label>
-          <button id="saveRoutineBtn" class="btn-purple">Guardar rutina</button>
-        </div>
-      </div>
-      <p class="footer-note">Arma tu sesión, guarda esa estructura como rutina y luego podrás cargarla cualquier otro día antes de empezar.</p>
-      <div id="routineList" class="routine-list"></div>
-    </section>
+    <nav class="tabs" aria-label="Secciones de la app">
+      <button class="tab-btn active" data-tab="train">Entrenar</button>
+      <button class="tab-btn" data-tab="routines">Rutinas</button>
+      <button class="tab-btn" data-tab="calendar">Calendario</button>
+      <button class="tab-btn" data-tab="history">Historial</button>
+      <button class="tab-btn" data-tab="settings">Respaldo</button>
+    </nav>
 
-    <section class="card" style="margin-top:16px;">
-      <div class="section-head">
-        <h2 style="margin:0;">Sesión actual</h2>
-        <div class="toolbar-wrap">
-          <button class="btn-primary" id="startSessionBtn">Marcar inicio</button>
-          <button class="btn-warn" id="endSessionBtn">Marcar fin</button>
-          <button class="btn-muted" id="archiveSessionBtn">Guardar en historial</button>
-          <button class="btn-danger" id="newSessionBtn">Nueva sesión</button>
-        </div>
-      </div>
-      <div class="summary" style="margin-top:12px;">
-        <div class="stat"><div class="label">Fecha</div><div class="value" id="sessionDateLabel">—</div></div>
-        <div class="stat"><div class="label">Inicio</div><div class="value" id="sessionStartLabel">—</div></div>
-        <div class="stat"><div class="label">Fin</div><div class="value" id="sessionEndLabel">—</div></div>
-        <div class="stat"><div class="label">Ejercicios listos</div><div class="value" id="doneCountLabel">0 / 0</div></div>
-        <div class="stat"><div class="label">Peso corporal</div><div class="value" id="bodyweightLabel">—</div></div>
-      </div>
-      <div class="status-row">
-        <span class="status-chip"><span class="dot"></span> <span id="selectedRoutineLabel">Rutina seleccionada: Ninguna</span></span>
-        <button class="btn-muted" id="clearSelectedRoutineBtn">Quitar selección</button>
-      </div>
-      <p class="footer-note">Puedes elegir una rutina guardada antes de iniciar la sesión. También puedes cambiarla en cualquier momento y seguir ajustando ejercicios manualmente.</p>
-    </section>
-
-    <div class="grid grid-2" style="margin-top:16px; align-items:start;">
+    <section id="panel-train" class="tab-panel active">
       <section class="card">
-        <h2>Agregar ejercicio a la sesión actual</h2>
-        <div class="row">
-          <div class="field" style="grid-column: span 12;">
-            <label for="exerciseName">Nombre del ejercicio</label>
-            <input id="exerciseName" placeholder="Ej: Press de piernas" />
+        <div class="section-head">
+          <h2 style="margin:0;">Sesión actual</h2>
+          <div class="toolbar-wrap">
+            <button class="btn-primary" id="startSessionBtn">Marcar inicio ahora</button>
+            <button class="btn-warn" id="endSessionBtn">Marcar fin ahora</button>
+            <button class="btn-muted" id="archiveSessionBtn">Guardar en historial</button>
+            <button class="btn-danger" id="newSessionBtn">Nueva sesión</button>
           </div>
         </div>
-
-        <div class="row">
-          <div class="field" style="grid-column: span 3;"><label for="exerciseOrder">Orden (opcional)</label><input id="exerciseOrder" type="number" min="1" step="1" placeholder="1" /></div>
-          <div class="field" style="grid-column: span 3;"><label for="exerciseWeight">Peso (opcional)</label><input id="exerciseWeight" type="number" step="0.5" placeholder="Ej: 35" /></div>
-          <div class="field" style="grid-column: span 3;"><label for="exerciseReps">Repeticiones (opcional)</label><input id="exerciseReps" type="number" min="1" step="1" placeholder="12" /></div>
-          <div class="field" style="grid-column: span 3;"><label for="exerciseTime">Tiempo (opcional)</label><input id="exerciseTime" type="text" placeholder="Ej: 45 seg o 2 min" /></div>
+        <div class="summary" style="margin-top:12px;">
+          <div class="stat"><div class="label">Fecha</div><div class="value" id="sessionDateLabel">—</div></div>
+          <div class="stat"><div class="label">Inicio</div><div class="value" id="sessionStartLabel">—</div></div>
+          <div class="stat"><div class="label">Fin</div><div class="value" id="sessionEndLabel">—</div></div>
+          <div class="stat"><div class="label">Ejercicios listos</div><div class="value" id="doneCountLabel">0 / 0</div></div>
+          <div class="stat"><div class="label">Peso corporal</div><div class="value" id="bodyweightLabel">—</div></div>
         </div>
-
-        <div class="row">
-          <div class="field" style="grid-column: span 6;"><label for="exerciseSets">Series (opcional)</label><input id="exerciseSets" type="number" min="1" step="1" placeholder="4" /></div>
-          <div class="field" style="grid-column: span 6;"><label for="bodyweightInput">Peso corporal (opcional)</label><input id="bodyweightInput" type="number" step="0.1" placeholder="Ej: 82.4" /></div>
+        <div class="status-row">
+          <span class="status-chip"><span class="dot"></span> <span id="selectedRoutineLabel">Rutina seleccionada: Ninguna</span></span>
+          <button class="btn-muted" id="clearSelectedRoutineBtn">Quitar selección</button>
         </div>
-
-        <div class="field">
-          <label for="exerciseNotes">Notas (opcional)</label>
-          <textarea id="exerciseNotes" placeholder="Ej: no bloquear rodillas, tempo lento, probar subir peso la próxima sesión"></textarea>
+        <div class="row" style="margin-top:12px;">
+          <div class="field" style="grid-column: span 5;">
+            <label for="sessionStartManual">Inicio manual</label>
+            <input id="sessionStartManual" type="datetime-local" />
+          </div>
+          <div class="field" style="grid-column: span 5;">
+            <label for="sessionEndManual">Fin manual</label>
+            <input id="sessionEndManual" type="datetime-local" />
+          </div>
+          <div class="field" style="grid-column: span 2; justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button id="saveSessionTimesBtn" class="btn-info">Guardar horas</button>
+          </div>
         </div>
-
-        <div class="spacer"></div>
-        <h3>Configuración de máquina (opcional)</h3>
-        <p class="muted small">Opcional: úsalo solo para ejercicios con máquina. Puedes agregar campos como respaldo, asiento, rodilla, tobillo o cualquier otro ajuste si aplica.</p>
-        <div class="row">
-          <div class="field" style="grid-column: span 5;"><label for="configKey">Nombre del ajuste</label><input id="configKey" placeholder="Ej: Respaldo" /></div>
-          <div class="field" style="grid-column: span 5;"><label for="configValue">Valor</label><input id="configValue" placeholder="Ej: 5" /></div>
-          <div class="field" style="grid-column: span 2; justify-content:flex-end;"><label>&nbsp;</label><button id="addConfigBtn" class="btn-info">Agregar</button></div>
-        </div>
-        <div id="configPills" class="pill-row"></div>
-
-        <h3>Imágenes referenciales</h3>
-        <p class="muted small">Las imágenes se comprimen antes de guardarse para ocupar menos espacio en el teléfono.</p>
-        <input id="exerciseImages" type="file" accept="image/*" multiple />
-        <p class="muted small">Toca cualquier imagen guardada para verla en grande.</p>
-
-        <div class="spacer"></div>
-        <button class="btn-primary btn-block" id="saveExerciseBtn">Guardar ejercicio</button>
+        <p class="footer-note">Puedes corregir el horario después si no marcaste inicio o fin en el momento exacto.</p>
       </section>
 
+      <section class="card" style="margin-top:16px;">
+        <div class="section-head">
+          <h2 style="margin:0;">Elegir rutina</h2>
+          <span class="muted small" id="routineQuickCountLabel">0 rutinas disponibles</span>
+        </div>
+        <div class="row">
+          <div class="field" style="grid-column: span 9;">
+            <label for="routineQuickSelect">Rutina guardada</label>
+            <select id="routineQuickSelect">
+              <option value="">Selecciona una rutina…</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column: span 3; justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button id="applySelectedRoutineBtn" class="btn-primary">Cargar rutina</button>
+          </div>
+        </div>
+        <p class="footer-note">Si ya tienes ejercicios en la sesión, la app te preguntará si quieres reemplazarlos o agregar la rutina al final.</p>
+      </section>
+
+      <div class="grid grid-2" style="margin-top:16px; align-items:start;">
+        <section class="card">
+          <h2>Agregar ejercicio a la sesión</h2>
+          <div class="row">
+            <div class="field" style="grid-column: span 12;">
+              <label for="exerciseName">Nombre del ejercicio</label>
+              <input id="exerciseName" placeholder="Ej: Press de piernas" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field" style="grid-column: span 3;"><label for="exerciseOrder">Orden (opcional)</label><input id="exerciseOrder" type="number" min="1" step="1" placeholder="1" /></div>
+            <div class="field" style="grid-column: span 3;"><label for="exerciseWeight">Peso (opcional)</label><input id="exerciseWeight" type="number" step="0.5" placeholder="Ej: 35" /></div>
+            <div class="field" style="grid-column: span 3;"><label for="exerciseReps">Repeticiones (opcional)</label><input id="exerciseReps" type="number" min="1" step="1" placeholder="12" /></div>
+            <div class="field" style="grid-column: span 3;"><label for="exerciseTime">Tiempo (opcional)</label><input id="exerciseTime" type="text" placeholder="Ej: 45 seg o 2 min" /></div>
+          </div>
+
+          <div class="row">
+            <div class="field" style="grid-column: span 6;"><label for="exerciseSets">Series (opcional)</label><input id="exerciseSets" type="number" min="1" step="1" placeholder="4" /></div>
+            <div class="field" style="grid-column: span 6;"><label for="bodyweightInput">Peso corporal (opcional)</label><input id="bodyweightInput" type="number" step="0.1" placeholder="Ej: 82.4" /></div>
+          </div>
+
+          <div class="field">
+            <label for="exerciseNotes">Notas</label>
+            <textarea id="exerciseNotes" placeholder="Ej: no bloquear rodillas, tempo lento, probar subir peso la próxima sesión"></textarea>
+          </div>
+
+          <div class="spacer"></div>
+          <h3>Configuración de máquina (opcional)</h3>
+          <p class="muted small">Úsalo solo para ejercicios con máquina. Puedes agregar campos como respaldo, asiento, rodilla, tobillo o cualquier otro ajuste si aplica.</p>
+          <div class="row">
+            <div class="field" style="grid-column: span 5;"><label for="configKey">Nombre del ajuste</label><input id="configKey" placeholder="Ej: Respaldo" /></div>
+            <div class="field" style="grid-column: span 5;"><label for="configValue">Valor</label><input id="configValue" placeholder="Ej: 5" /></div>
+            <div class="field" style="grid-column: span 2; justify-content:flex-end;"><label>&nbsp;</label><button id="addConfigBtn" class="btn-info">Agregar</button></div>
+          </div>
+          <div id="configPills" class="pill-row"></div>
+
+          <h3>Imágenes referenciales</h3>
+          <p class="muted small">Las imágenes se comprimen antes de guardarse. Toca una imagen guardada para verla en grande.</p>
+          <input id="exerciseImages" type="file" accept="image/*" multiple />
+
+          <div class="spacer"></div>
+          <button class="btn-primary btn-block" id="saveExerciseBtn">Guardar ejercicio</button>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2 style="margin:0;">Ejercicios de hoy</h2>
+            <div class="toolbar-wrap">
+              <button class="btn-muted" id="sortByOrderBtn">Ordenar por orden</button>
+              <button class="btn-muted" id="sortByStatusBtn">Pendientes primero</button>
+              <button class="btn-danger" id="clearSessionBtn">Vaciar sesión</button>
+            </div>
+          </div>
+          <p class="muted small">Puedes completar ejercicios en cualquier orden. El número sigue representando el orden planificado.</p>
+          <div id="exerciseList" class="exercise-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="panel-routines" class="tab-panel">
+      <section class="card">
+        <div class="section-head">
+          <h2 style="margin:0;">Crear o actualizar rutina</h2>
+          <span class="muted small" id="routineCountLabel">0 rutinas</span>
+        </div>
+        <div class="row">
+          <div class="field" style="grid-column: span 4;">
+            <label for="routineName">Nombre de rutina</label>
+            <input id="routineName" placeholder="Ej: Pierna A" />
+          </div>
+          <div class="field" style="grid-column: span 6;">
+            <label for="routineNotes">Notas de rutina</label>
+            <input id="routineNotes" placeholder="Ej: priorizar técnica y tempo controlado" />
+          </div>
+          <div class="field" style="grid-column: span 2; justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button id="saveRoutineBtn" class="btn-purple">Guardar rutina</button>
+          </div>
+        </div>
+        <p class="footer-note">Arma tu sesión en la pestaña Entrenar, luego guarda esa estructura como rutina reutilizable.</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <div class="section-head">
+          <h2 style="margin:0;">Rutinas guardadas</h2>
+          <span class="muted small" id="routineManagerCountLabel">0 rutinas</span>
+        </div>
+        <div id="routineList" class="routine-list"></div>
+      </section>
+    </section>
+
+    <section id="panel-calendar" class="tab-panel">
       <section class="card">
         <h2>Calendario de entrenamiento</h2>
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
@@ -615,28 +714,28 @@
         <div class="calendar" id="calendar"></div>
         <p class="footer-note">Se marca cada día en que guardaste una sesión con ejercicios en el historial.</p>
       </section>
-    </div>
-
-    <section class="card" style="margin-top:16px;">
-      <div class="section-head">
-        <h2 style="margin:0;">Rutina actual</h2>
-        <div class="toolbar-wrap">
-          <button class="btn-muted" id="sortByOrderBtn">Ordenar por orden</button>
-          <button class="btn-muted" id="sortByStatusBtn">Pendientes primero</button>
-          <button class="btn-danger" id="clearSessionBtn">Vaciar sesión actual</button>
-        </div>
-      </div>
-      <p class="muted small">Puedes completar ejercicios en cualquier orden. El número sigue representando el orden planificado.</p>
-      <div id="exerciseList" class="exercise-list"></div>
     </section>
 
-    <section class="card" style="margin-top:16px;">
-      <div class="section-head">
-        <h2 style="margin:0;">Historial</h2>
-        <span class="muted small" id="historyCountLabel">0 sesiones guardadas</span>
-      </div>
-      <p class="muted small">Puedes revisar sesiones pasadas y copiar ejercicios o sesiones completas a la sesión actual.</p>
-      <div id="historyList" class="history-list"></div>
+    <section id="panel-history" class="tab-panel">
+      <section class="card">
+        <div class="section-head">
+          <h2 style="margin:0;">Historial</h2>
+          <span class="muted small" id="historyCountLabel">0 sesiones guardadas</span>
+        </div>
+        <p class="muted small">Puedes revisar sesiones pasadas y copiar ejercicios o sesiones completas a la sesión actual.</p>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </section>
+
+    <section id="panel-settings" class="tab-panel">
+      <section class="card">
+        <h2>Respaldo y sincronización manual</h2>
+        <p class="footer-note">Usa exportar para guardar un archivo con tus rutinas, historial y sesión actual. Usa importar para restaurar un respaldo en este dispositivo.</p>
+        <div class="toolbar-wrap" style="margin-top:12px;">
+          <button id="exportBtnSecondary" class="btn-info">Exportar respaldo</button>
+          <button id="importBtnSecondary" class="btn-purple">Importar respaldo</button>
+        </div>
+      </section>
     </section>
   </div>
 
@@ -674,6 +773,10 @@
       historyCountLabel: document.getElementById('historyCountLabel'),
       routineList: document.getElementById('routineList'),
       routineCountLabel: document.getElementById('routineCountLabel'),
+      routineManagerCountLabel: document.getElementById('routineManagerCountLabel'),
+      routineQuickCountLabel: document.getElementById('routineQuickCountLabel'),
+      routineQuickSelect: document.getElementById('routineQuickSelect'),
+      applySelectedRoutineBtn: document.getElementById('applySelectedRoutineBtn'),
       routineName: document.getElementById('routineName'),
       routineNotes: document.getElementById('routineNotes'),
       saveRoutineBtn: document.getElementById('saveRoutineBtn'),
@@ -682,6 +785,9 @@
       sessionDateLabel: document.getElementById('sessionDateLabel'),
       sessionStartLabel: document.getElementById('sessionStartLabel'),
       sessionEndLabel: document.getElementById('sessionEndLabel'),
+      sessionStartManual: document.getElementById('sessionStartManual'),
+      sessionEndManual: document.getElementById('sessionEndManual'),
+      saveSessionTimesBtn: document.getElementById('saveSessionTimesBtn'),
       doneCountLabel: document.getElementById('doneCountLabel'),
       bodyweightLabel: document.getElementById('bodyweightLabel'),
       calendar: document.getElementById('calendar'),
@@ -690,12 +796,16 @@
       installStatus: document.getElementById('installStatus'),
       runtimeStatus: document.getElementById('runtimeStatus'),
       installBtn: document.getElementById('installBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      exportBtnSecondary: document.getElementById('exportBtnSecondary'),
+      importBtn: document.getElementById('importBtn'),
+      importBtnSecondary: document.getElementById('importBtnSecondary'),
+      importFile: document.getElementById('importFile'),
       imageLightbox: document.getElementById('imageLightbox'),
       lightboxImage: document.getElementById('lightboxImage'),
       closeLightboxBtn: document.getElementById('closeLightboxBtn'),
-      exportBtn: document.getElementById('exportBtn'),
-      importBtn: document.getElementById('importBtn'),
-      importFile: document.getElementById('importFile')
+      tabButtons: Array.from(document.querySelectorAll('.tab-btn')),
+      tabPanels: Array.from(document.querySelectorAll('.tab-panel'))
     };
 
     document.getElementById('addConfigBtn').addEventListener('click', addPendingConfig);
@@ -710,11 +820,18 @@
     document.getElementById('prevMonthBtn').addEventListener('click', async () => moveCalendar(-1));
     document.getElementById('nextMonthBtn').addEventListener('click', async () => moveCalendar(1));
     els.exportBtn.addEventListener('click', exportBackup);
+    els.exportBtnSecondary.addEventListener('click', exportBackup);
     els.importBtn.addEventListener('click', () => els.importFile.click());
+    els.importBtnSecondary.addEventListener('click', () => els.importFile.click());
     els.importFile.addEventListener('change', importBackup);
     els.installBtn.addEventListener('click', installApp);
     els.saveRoutineBtn.addEventListener('click', saveCurrentSessionAsRoutine);
     els.clearSelectedRoutineBtn.addEventListener('click', async () => clearSelectedRoutine());
+    els.applySelectedRoutineBtn.addEventListener('click', async () => {
+      if (!els.routineQuickSelect.value) return alert('Selecciona una rutina primero.');
+      await applyRoutineToCurrentSession(els.routineQuickSelect.value);
+    });
+    els.saveSessionTimesBtn.addEventListener('click', saveSessionTimesManually);
     els.closeLightboxBtn.addEventListener('click', closeLightbox);
     els.imageLightbox.addEventListener('click', event => {
       if (event.target === els.imageLightbox) closeLightbox();
@@ -722,6 +839,10 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') closeLightbox();
     });
+    els.tabButtons.forEach(btn => btn.addEventListener('click', async () => {
+      state.ui.activeTab = btn.dataset.tab;
+      await persistAndRender();
+    }));
 
     window.addEventListener('beforeinstallprompt', event => {
       event.preventDefault();
@@ -765,7 +886,7 @@
     function defaultState() {
       const today = todayKey();
       return {
-        version: 5,
+        version: 6,
         routines: [],
         currentSession: {
           id: cryptoId(),
@@ -779,7 +900,12 @@
         },
         historySessions: [],
         completedDates: [],
-        ui: { calendarYear: new Date().getFullYear(), calendarMonth: new Date().getMonth(), sortMode: 'order' }
+        ui: {
+          calendarYear: new Date().getFullYear(),
+          calendarMonth: new Date().getMonth(),
+          sortMode: 'order',
+          activeTab: 'train'
+        }
       };
     }
 
@@ -796,10 +922,14 @@
         },
         historySessions: Array.isArray(raw?.historySessions) ? raw.historySessions : [],
         completedDates: Array.isArray(raw?.completedDates) ? raw.completedDates : [],
-        ui: { ...base.ui, ...((raw && raw.ui) || {}) }
+        ui: {
+          ...base.ui,
+          ...((raw && raw.ui) || {})
+        }
       };
       if (!merged.currentSession.id) merged.currentSession.id = cryptoId();
       if (!merged.currentSession.date) merged.currentSession.date = todayKey();
+      if (!merged.ui.activeTab) merged.ui.activeTab = 'train';
       return merged;
     }
 
@@ -853,12 +983,20 @@
     }
 
     function renderAll() {
+      renderTabs();
       renderSession();
       renderConfigs();
       renderExercises();
       renderHistory();
       renderRoutines();
+      renderRoutineQuickPicker();
       renderCalendar();
+    }
+
+    function renderTabs() {
+      const active = state.ui.activeTab || 'train';
+      els.tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === active));
+      els.tabPanels.forEach(panel => panel.classList.toggle('active', panel.id === `panel-${active}`));
     }
 
     function todayKey() {
@@ -890,6 +1028,18 @@
       return new Date(iso).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
+    function isoToDatetimeLocal(iso) {
+      if (!iso) return '';
+      const date = new Date(iso);
+      const offsetMs = date.getTimezoneOffset() * 60000;
+      return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+    }
+
+    function datetimeLocalToIso(value) {
+      if (!value) return null;
+      return new Date(value).toISOString();
+    }
+
     function hasSessionContent(session) {
       return !!(session && (session.startTime || session.endTime || session.bodyweight !== null || (Array.isArray(session.exercises) && session.exercises.length)));
     }
@@ -904,10 +1054,24 @@
       els.sessionDateLabel.textContent = formatFullDate(session.date);
       els.sessionStartLabel.textContent = formatDateTime(session.startTime);
       els.sessionEndLabel.textContent = formatDateTime(session.endTime);
+      els.sessionStartManual.value = isoToDatetimeLocal(session.startTime);
+      els.sessionEndManual.value = isoToDatetimeLocal(session.endTime);
       els.doneCountLabel.textContent = `${doneCount} / ${session.exercises.length}`;
       els.bodyweightLabel.textContent = session.bodyweight !== null ? `${session.bodyweight} kg` : '—';
       els.bodyweightInput.value = session.bodyweight ?? '';
       els.selectedRoutineLabel.textContent = `Rutina seleccionada: ${session.routineName || 'Ninguna'}`;
+    }
+
+    async function saveSessionTimesManually() {
+      const startIso = datetimeLocalToIso(els.sessionStartManual.value);
+      const endIso = datetimeLocalToIso(els.sessionEndManual.value);
+      state.currentSession.startTime = startIso;
+      state.currentSession.endTime = endIso;
+      const dateSource = startIso || endIso;
+      if (dateSource) {
+        state.currentSession.date = dateSource.slice(0, 10);
+      }
+      await persistAndRender();
     }
 
     function addPendingConfig() {
@@ -1129,6 +1293,8 @@
 
       clearRoutineForm();
       await persistAndRender();
+      state.ui.activeTab = 'routines';
+      renderTabs();
     }
 
     async function applyRoutineToCurrentSession(routineId) {
@@ -1154,6 +1320,7 @@
 
       state.currentSession.routineId = routine.id;
       state.currentSession.routineName = routine.name;
+      state.ui.activeTab = 'train';
       await persistAndRender();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1167,6 +1334,18 @@
         state.currentSession.routineName = null;
       }
       await persistAndRender();
+    }
+
+    function renderRoutineQuickPicker() {
+      els.routineQuickSelect.innerHTML = '<option value="">Selecciona una rutina…</option>';
+      state.routines.forEach(routine => {
+        const option = document.createElement('option');
+        option.value = routine.id;
+        option.textContent = `${routine.name} (${routine.exercises.length})`;
+        if (routine.id === state.currentSession.routineId) option.selected = true;
+        els.routineQuickSelect.appendChild(option);
+      });
+      els.routineQuickCountLabel.textContent = `${state.routines.length} rutinas disponibles`;
     }
 
     function getSortedExercises() {
@@ -1213,7 +1392,7 @@
       ];
 
       const photos = exercise.images?.length
-        ? `<div class="photo-grid">${exercise.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" data-fullsrc="${img}" style="cursor:zoom-in;" />${isCurrentSession ? `<button data-remove-photo="${exercise.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>`
+        ? `<div class="photo-grid">${exercise.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" data-fullsrc="${img}" />${isCurrentSession ? `<button data-remove-photo="${exercise.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>`
         : '<div class="muted small" style="margin-top:12px;">Sin imágenes referenciales.</div>';
 
       const modeBadge = isCurrentSession
@@ -1246,13 +1425,7 @@
     }
 
     function bindExerciseCardEvents(scopeEl, mode) {
-      scopeEl.querySelectorAll('img[data-fullsrc]').forEach(img => {
-        img.addEventListener('click', event => {
-          event.stopPropagation();
-          openLightbox(img.dataset.fullsrc);
-        });
-      });
-
+      scopeEl.querySelectorAll('img[data-fullsrc]').forEach(img => img.addEventListener('click', () => openLightbox(img.dataset.fullsrc)));
       if (mode === 'current') {
         scopeEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', async () => toggleDone(btn.dataset.toggleDone)));
         scopeEl.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', async () => deleteExercise(btn.dataset.delete)));
@@ -1314,6 +1487,8 @@
       const copy = cloneExerciseForSession(exercise, nextOrder());
       state.currentSession.exercises.push(copy);
       await persistAndRender();
+      state.ui.activeTab = 'train';
+      renderTabs();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1349,6 +1524,7 @@
       const list = els.routineList;
       list.innerHTML = '';
       els.routineCountLabel.textContent = `${state.routines.length} rutinas`;
+      els.routineManagerCountLabel.textContent = `${state.routines.length} rutinas`;
       if (!state.routines.length) {
         list.innerHTML = '<div class="muted">Todavía no guardas rutinas.</div>';
         return;
@@ -1370,7 +1546,7 @@
               <div class="muted small" style="margin-top:4px;">${routine.notes ? escapeHtml(routine.notes) : 'Sin notas.'}</div>
             </div>
             <div class="toolbar-wrap">
-              <button class="btn-primary" data-apply-routine="${routine.id}">Usar en sesión actual</button>
+              <button class="btn-primary" data-apply-routine="${routine.id}">Usar en sesión</button>
               <button class="btn-danger" data-delete-routine="${routine.id}">Eliminar</button>
             </div>
           </div>
@@ -1403,6 +1579,7 @@
       });
       state.currentSession.routineId = session.routineId || null;
       state.currentSession.routineName = session.routineName || null;
+      state.ui.activeTab = 'train';
       await persistAndRender();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1622,6 +1799,7 @@
         const base = defaultState();
         assert(Array.isArray(base.currentSession.exercises), 'defaultState crea exercises');
         assert(Array.isArray(base.routines), 'defaultState crea rutinas');
+        assert(base.ui.activeTab === 'train', 'defaultState define pestaña activa');
         const normalized = normalizeState({ currentSession: { exercises: [{ id: '1' }] }, routines: [{ id: 'r1', name: 'Pierna', exercises: [] }] });
         assert(Array.isArray(normalized.currentSession.exercises), 'normalizeState conserva exercises');
         assert(Array.isArray(normalized.routines), 'normalizeState conserva rutinas');
@@ -1630,6 +1808,8 @@
         assert(template[0].time === '45 seg', 'las rutinas conservan el tiempo del ejercicio');
         const cloned = cloneExercisesForSession([{ id: 'a', name: 'Press', order: 2, configs: [], images: [], createdAt: nowIso() }], 5);
         assert(cloned[0].order === 5, 'cloneExercisesForSession renumera desde el orden indicado');
+        const iso = datetimeLocalToIso('2026-04-17T10:30');
+        assert(typeof iso === 'string' && iso.includes('T'), 'datetimeLocalToIso genera ISO');
         assert(isLikelyPreviewContext() === ['about:', 'blob:', 'data:'].includes(location.protocol), 'detección de preview consistente');
       } catch (error) {
         console.error(error);
