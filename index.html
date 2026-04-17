@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Gym Tracker" />
+  <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
+  <title>Gym Tracker Offline+</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --line: #334155;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --purple: #8b5cf6;
+      --shadow: 0 12px 32px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 16px 16px 100px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(56,189,248,.18));
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 880px;
+    }
+
+    .install-box {
+      background: rgba(2,6,23,.4);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 16px;
+      padding: 12px;
+      min-width: 280px;
+    }
+
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      background: rgba(17,24,39,.95);
+      border: 1px solid rgba(148,163,184,.16);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2, .card h3 { margin-top: 0; }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: .88rem;
+      color: var(--muted);
+    }
+
+    input, textarea, select, button { font: inherit; }
+
+    input, textarea, select {
+      width: 100%;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea { min-height: 88px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      cursor: pointer;
+      color: white;
+      background: #334155;
+      transition: transform .08s ease, opacity .2s ease;
+    }
+
+    button:active { transform: scale(.98); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .btn-info { background: linear-gradient(135deg, #0284c7, #38bdf8); }
+    .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .btn-warn { background: linear-gradient(135deg, #d97706, #f59e0b); color: #111827; }
+    .btn-muted { background: #1e293b; }
+    .btn-purple { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+    .btn-block { width: 100%; }
+
+    .muted { color: var(--muted); }
+    .small { font-size: .9rem; }
+    .tiny { font-size: .8rem; }
+    .spacer { height: 6px; }
+
+    .toolbar-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #0b1220;
+      border: 1px solid var(--line);
+      font-size: .88rem;
+    }
+
+    .pill button {
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(239,68,68,.15);
+      color: #fecaca;
+      font-size: .78rem;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      background: #0b1220;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: .82rem;
+      margin-bottom: 6px;
+    }
+
+    .stat .value {
+      font-size: 1.08rem;
+      font-weight: 700;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #0b1220;
+      border: 1px solid var(--line);
+      font-size: .86rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .exercise-list, .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .exercise-card, .history-card {
+      border: 1px solid rgba(148,163,184,.16);
+      background: linear-gradient(180deg, rgba(31,41,55,.98), rgba(15,23,42,.98));
+      border-radius: 20px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exercise-card.done {
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 1px rgba(34,197,94,.14) inset;
+    }
+
+    .exercise-top, .history-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .exercise-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.14);
+      color: #bae6fd;
+      font-size: .85rem;
+      border: 1px solid rgba(56,189,248,.28);
+    }
+
+    .done-tag {
+      background: rgba(34,197,94,.14);
+      color: #bbf7d0;
+      border: 1px solid rgba(34,197,94,.28);
+    }
+
+    .history-tag {
+      background: rgba(139,92,246,.15);
+      color: #ddd6fe;
+      border: 1px solid rgba(139,92,246,.28);
+    }
+
+    .exercise-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .exercise-actions button, .history-top button {
+      padding: 8px 10px;
+      font-size: .88rem;
+    }
+
+    .config-grid, .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .config-item, .metric-item {
+      background: #0b1220;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .config-item strong, .metric-item strong {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .photo {
+      position: relative;
+      background: #0b1220;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      min-height: 90px;
+      aspect-ratio: 1 / 1;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo button {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 4px 7px;
+      font-size: .75rem;
+      background: rgba(0,0,0,.65);
+      color: white;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .cal-head, .cal-day {
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .cal-head {
+      color: var(--muted);
+      font-size: .83rem;
+      background: rgba(15,23,42,.75);
+      border: 1px solid rgba(148,163,184,.1);
+    }
+
+    .cal-day {
+      background: #0b1220;
+      border: 1px solid var(--line);
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .cal-day.done {
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 1px rgba(34,197,94,.14) inset;
+    }
+
+    .cal-day.today {
+      border-color: rgba(56,189,248,.45);
+    }
+
+    .cal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    details {
+      background: rgba(2,6,23,.25);
+      border: 1px solid rgba(148,163,184,.12);
+      border-radius: 16px;
+      padding: 10px 12px;
+    }
+
+    details summary {
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 950px) {
+      .grid-2, .grid-3, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .app { padding: 12px 12px 90px; }
+      .row { grid-template-columns: 1fr; }
+      .grid-2, .grid-3, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr; }
+      .calendar { gap: 6px; }
+      .cal-day { min-height: 52px; font-size: .9rem; }
+      .exercise-actions { width: 100%; justify-content: stretch; }
+      .exercise-actions button { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>Gym Tracker Offline+</h1>
+          <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y soporte real para instalación en Android como PWA cuando se publica en HTTPS.</p>
+        </div>
+        <div class="install-box">
+          <div class="small"><strong>Modo Android</strong></div>
+          <div class="tiny muted" style="margin:6px 0 10px;">Los datos quedan en este dispositivo. Para máxima seguridad, usa respaldo manual periódico.</div>
+          <div class="toolbar-wrap">
+            <button id="installBtn" class="btn-primary" disabled>Instalar app</button>
+            <button id="exportBtn" class="btn-info">Exportar respaldo</button>
+            <button id="importBtn" class="btn-purple">Importar</button>
+            <input id="importFile" type="file" accept="application/json" class="hidden" />
+          </div>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-chip"><span class="dot"></span> <span id="storageStatus">Cargando almacenamiento…</span></span>
+        <span class="status-chip" id="installStatus">Esperando requisitos de instalación…</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 style="margin:0;">Sesión actual</h2>
+        <div class="toolbar-wrap">
+          <button class="btn-primary" id="startSessionBtn">Marcar inicio</button>
+          <button class="btn-warn" id="endSessionBtn">Marcar fin</button>
+          <button class="btn-muted" id="archiveSessionBtn">Guardar en historial</button>
+          <button class="btn-danger" id="newSessionBtn">Nueva sesión</button>
+        </div>
+      </div>
+      <div class="summary" style="margin-top:12px;">
+        <div class="stat"><div class="label">Fecha</div><div class="value" id="sessionDateLabel">—</div></div>
+        <div class="stat"><div class="label">Inicio</div><div class="value" id="sessionStartLabel">—</div></div>
+        <div class="stat"><div class="label">Fin</div><div class="value" id="sessionEndLabel">—</div></div>
+        <div class="stat"><div class="label">Ejercicios listos</div><div class="value" id="doneCountLabel">0 / 0</div></div>
+        <div class="stat"><div class="label">Peso corporal</div><div class="value" id="bodyweightLabel">—</div></div>
+      </div>
+      <p class="footer-note">Cada sesión se puede archivar sin perder el historial. Luego puedes reutilizar ejercicios o sesiones completas.</p>
+    </section>
+
+    <div class="grid grid-2" style="margin-top:16px; align-items:start;">
+      <section class="card">
+        <h2>Agregar ejercicio a la sesión actual</h2>
+        <div class="row">
+          <div class="field" style="grid-column: span 12;">
+            <label for="exerciseName">Nombre del ejercicio</label>
+            <input id="exerciseName" placeholder="Ej: Press de piernas" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field" style="grid-column: span 4;"><label for="exerciseOrder">Orden</label><input id="exerciseOrder" type="number" min="1" step="1" placeholder="1" /></div>
+          <div class="field" style="grid-column: span 4;"><label for="exerciseWeight">Peso</label><input id="exerciseWeight" type="number" step="0.5" placeholder="Ej: 35" /></div>
+          <div class="field" style="grid-column: span 4;"><label for="exerciseReps">Repeticiones</label><input id="exerciseReps" type="number" min="1" step="1" placeholder="12" /></div>
+        </div>
+
+        <div class="row">
+          <div class="field" style="grid-column: span 6;"><label for="exerciseSets">Series</label><input id="exerciseSets" type="number" min="1" step="1" placeholder="4" /></div>
+          <div class="field" style="grid-column: span 6;"><label for="bodyweightInput">Peso corporal (opcional)</label><input id="bodyweightInput" type="number" step="0.1" placeholder="Ej: 82.4" /></div>
+        </div>
+
+        <div class="field">
+          <label for="exerciseNotes">Notas</label>
+          <textarea id="exerciseNotes" placeholder="Ej: no bloquear rodillas, tempo lento, probar subir peso la próxima sesión"></textarea>
+        </div>
+
+        <div class="spacer"></div>
+        <h3>Configuración de máquina</h3>
+        <p class="muted small">Puedes ir agregando campos como respaldo, asiento, rodilla, tobillo o cualquier otro ajuste.</p>
+        <div class="row">
+          <div class="field" style="grid-column: span 5;"><label for="configKey">Nombre del ajuste</label><input id="configKey" placeholder="Ej: Respaldo" /></div>
+          <div class="field" style="grid-column: span 5;"><label for="configValue">Valor</label><input id="configValue" placeholder="Ej: 5" /></div>
+          <div class="field" style="grid-column: span 2; justify-content:flex-end;"><label>&nbsp;</label><button id="addConfigBtn" class="btn-info">Agregar</button></div>
+        </div>
+        <div id="configPills" class="pill-row"></div>
+
+        <h3>Imágenes referenciales</h3>
+        <p class="muted small">Las imágenes se comprimen antes de guardarse para ocupar menos espacio en el teléfono.</p>
+        <input id="exerciseImages" type="file" accept="image/*" multiple />
+
+        <div class="spacer"></div>
+        <button class="btn-primary btn-block" id="saveExerciseBtn">Guardar ejercicio</button>
+      </section>
+
+      <section class="card">
+        <h2>Calendario de entrenamiento</h2>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <button class="btn-muted" id="prevMonthBtn">◀ Mes anterior</button>
+          <strong id="calendarTitle">—</strong>
+          <button class="btn-muted" id="nextMonthBtn">Mes siguiente ▶</button>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <p class="footer-note">Se marca cada día en que guardaste una sesión con ejercicios en el historial.</p>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="section-head">
+        <h2 style="margin:0;">Rutina actual</h2>
+        <div class="toolbar-wrap">
+          <button class="btn-muted" id="sortByOrderBtn">Ordenar por orden</button>
+          <button class="btn-muted" id="sortByStatusBtn">Pendientes primero</button>
+          <button class="btn-danger" id="clearSessionBtn">Vaciar sesión actual</button>
+        </div>
+      </div>
+      <p class="muted small">Puedes completar ejercicios en cualquier orden. El número sigue representando el orden planificado.</p>
+      <div id="exerciseList" class="exercise-list"></div>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="section-head">
+        <h2 style="margin:0;">Historial</h2>
+        <span class="muted small" id="historyCountLabel">0 sesiones guardadas</span>
+      </div>
+      <p class="muted small">Puedes revisar sesiones pasadas y copiar ejercicios o sesiones completas a la sesión actual.</p>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </div>
+
+  <script>
+    const DB_NAME = 'gymTrackerOfflineDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'appState';
+    const STATE_ID = 'main';
+
+    let db;
+    let deferredPrompt = null;
+    let state = null;
+    let pendingConfigs = [];
+
+    const els = {
+      exerciseName: document.getElementById('exerciseName'),
+      exerciseOrder: document.getElementById('exerciseOrder'),
+      exerciseWeight: document.getElementById('exerciseWeight'),
+      exerciseReps: document.getElementById('exerciseReps'),
+      exerciseSets: document.getElementById('exerciseSets'),
+      bodyweightInput: document.getElementById('bodyweightInput'),
+      exerciseNotes: document.getElementById('exerciseNotes'),
+      configKey: document.getElementById('configKey'),
+      configValue: document.getElementById('configValue'),
+      configPills: document.getElementById('configPills'),
+      exerciseImages: document.getElementById('exerciseImages'),
+      exerciseList: document.getElementById('exerciseList'),
+      historyList: document.getElementById('historyList'),
+      historyCountLabel: document.getElementById('historyCountLabel'),
+      sessionDateLabel: document.getElementById('sessionDateLabel'),
+      sessionStartLabel: document.getElementById('sessionStartLabel'),
+      sessionEndLabel: document.getElementById('sessionEndLabel'),
+      doneCountLabel: document.getElementById('doneCountLabel'),
+      bodyweightLabel: document.getElementById('bodyweightLabel'),
+      calendar: document.getElementById('calendar'),
+      calendarTitle: document.getElementById('calendarTitle'),
+      storageStatus: document.getElementById('storageStatus'),
+      installStatus: document.getElementById('installStatus'),
+      installBtn: document.getElementById('installBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      importFile: document.getElementById('importFile')
+    };
+
+    document.getElementById('addConfigBtn').addEventListener('click', addPendingConfig);
+    document.getElementById('saveExerciseBtn').addEventListener('click', saveExercise);
+    document.getElementById('startSessionBtn').addEventListener('click', startSession);
+    document.getElementById('endSessionBtn').addEventListener('click', endSession);
+    document.getElementById('archiveSessionBtn').addEventListener('click', archiveSessionFromButton);
+    document.getElementById('newSessionBtn').addEventListener('click', createFreshSession);
+    document.getElementById('clearSessionBtn').addEventListener('click', clearCurrentSessionExercises);
+    document.getElementById('sortByOrderBtn').addEventListener('click', async () => { state.ui.sortMode = 'order'; await persistAndRender(); });
+    document.getElementById('sortByStatusBtn').addEventListener('click', async () => { state.ui.sortMode = 'status'; await persistAndRender(); });
+    document.getElementById('prevMonthBtn').addEventListener('click', async () => moveCalendar(-1));
+    document.getElementById('nextMonthBtn').addEventListener('click', async () => moveCalendar(1));
+    els.exportBtn.addEventListener('click', exportBackup);
+    els.importBtn.addEventListener('click', () => els.importFile.click());
+    els.importFile.addEventListener('change', importBackup);
+    els.installBtn.addEventListener('click', installApp);
+
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      deferredPrompt = event;
+      els.installBtn.disabled = false;
+      els.installStatus.textContent = 'Lista para instalar desde Chrome en Android';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      els.installStatus.textContent = 'Aplicación instalada';
+      els.installBtn.disabled = true;
+      deferredPrompt = null;
+    });
+
+    init();
+
+    async function init() {
+      try {
+        db = await openDB();
+        state = await loadState();
+        els.storageStatus.textContent = 'IndexedDB activo en este dispositivo';
+      } catch (error) {
+        console.error(error);
+        state = defaultState();
+        els.storageStatus.textContent = 'Error en IndexedDB. Usando memoria temporal';
+      }
+      await registerServiceWorker();
+      updateInstallHint();
+      renderAll();
+    }
+
+    function defaultState() {
+      const today = todayKey();
+      return {
+        version: 3,
+        currentSession: { id: cryptoId(), date: today, startTime: null, endTime: null, bodyweight: null, exercises: [] },
+        historySessions: [],
+        completedDates: [],
+        ui: { calendarYear: new Date().getFullYear(), calendarMonth: new Date().getMonth(), sortMode: 'order' }
+      };
+    }
+
+    function normalizeState(raw) {
+      const base = defaultState();
+      const merged = {
+        ...base,
+        ...(raw || {}),
+        currentSession: { ...base.currentSession, ...((raw && raw.currentSession) || {}), exercises: Array.isArray(raw?.currentSession?.exercises) ? raw.currentSession.exercises : [] },
+        historySessions: Array.isArray(raw?.historySessions) ? raw.historySessions : [],
+        completedDates: Array.isArray(raw?.completedDates) ? raw.completedDates : [],
+        ui: { ...base.ui, ...((raw && raw.ui) || {}) }
+      };
+      if (!merged.currentSession.id) merged.currentSession.id = cryptoId();
+      if (!merged.currentSession.date) merged.currentSession.date = todayKey();
+      return merged;
+    }
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = () => {
+          const database = request.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function idbGet(id) {
+      return new Promise((resolve, reject) => {
+        if (!db) return resolve(null);
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result?.value || null);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function idbSet(id, value) {
+      return new Promise((resolve, reject) => {
+        if (!db) return resolve();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put({ id, value, updatedAt: new Date().toISOString() });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function loadState() {
+      return normalizeState(await idbGet(STATE_ID));
+    }
+
+    async function saveState() {
+      if (!db) return;
+      await idbSet(STATE_ID, state);
+    }
+
+    async function persistAndRender() {
+      await saveState();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderSession();
+      renderConfigs();
+      renderExercises();
+      renderHistory();
+      renderCalendar();
+    }
+
+    function todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function nowIso() { return new Date().toISOString(); }
+
+    function formatDateTime(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDateKey(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatFullDate(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function hasSessionContent(session) {
+      return !!(session && (session.startTime || session.endTime || session.bodyweight !== null || (Array.isArray(session.exercises) && session.exercises.length)));
+    }
+
+    function addCompletedDate(key) {
+      if (!state.completedDates.includes(key)) state.completedDates.push(key);
+    }
+
+    function renderSession() {
+      const session = state.currentSession;
+      const doneCount = session.exercises.filter(x => x.done).length;
+      els.sessionDateLabel.textContent = formatFullDate(session.date);
+      els.sessionStartLabel.textContent = formatDateTime(session.startTime);
+      els.sessionEndLabel.textContent = formatDateTime(session.endTime);
+      els.doneCountLabel.textContent = `${doneCount} / ${session.exercises.length}`;
+      els.bodyweightLabel.textContent = session.bodyweight !== null ? `${session.bodyweight} kg` : '—';
+      els.bodyweightInput.value = session.bodyweight ?? '';
+    }
+
+    function addPendingConfig() {
+      const key = els.configKey.value.trim();
+      const value = els.configValue.value.trim();
+      if (!key || !value) return alert('Completa nombre del ajuste y valor.');
+      pendingConfigs.push({ id: cryptoId(), key, value });
+      els.configKey.value = '';
+      els.configValue.value = '';
+      renderConfigs();
+    }
+
+    function renderConfigs() {
+      els.configPills.innerHTML = '';
+      if (!pendingConfigs.length) {
+        els.configPills.innerHTML = '<span class="muted small">Aún no agregas configuraciones para este ejercicio.</span>';
+        return;
+      }
+      pendingConfigs.forEach(cfg => {
+        const pill = document.createElement('div');
+        pill.className = 'pill';
+        pill.innerHTML = `<span><strong>${escapeHtml(cfg.key)}:</strong> ${escapeHtml(cfg.value)}</span>`;
+        const btn = document.createElement('button');
+        btn.textContent = '✕';
+        btn.addEventListener('click', () => {
+          pendingConfigs = pendingConfigs.filter(x => x.id !== cfg.id);
+          renderConfigs();
+        });
+        pill.appendChild(btn);
+        els.configPills.appendChild(pill);
+      });
+    }
+
+    async function saveExercise() {
+      const name = els.exerciseName.value.trim();
+      if (!name) return alert('Ingresa el nombre del ejercicio.');
+      const order = numberOrNull(els.exerciseOrder.value);
+      const weight = numberOrNull(els.exerciseWeight.value);
+      const reps = numberOrNull(els.exerciseReps.value);
+      const sets = numberOrNull(els.exerciseSets.value);
+      const bodyweight = numberOrNull(els.bodyweightInput.value);
+      const notes = els.exerciseNotes.value.trim();
+      if (bodyweight !== null) state.currentSession.bodyweight = bodyweight;
+      const images = await prepareImages(Array.from(els.exerciseImages.files || []));
+      state.currentSession.exercises.push({ id: cryptoId(), name, order: order ?? nextOrder(), weight, reps, sets, notes, configs: [...pendingConfigs], images, done: false, doneAt: null, createdAt: nowIso() });
+      clearExerciseForm();
+      await persistAndRender();
+    }
+
+    function clearExerciseForm() {
+      els.exerciseName.value = '';
+      els.exerciseOrder.value = '';
+      els.exerciseWeight.value = '';
+      els.exerciseReps.value = '';
+      els.exerciseSets.value = '';
+      els.exerciseNotes.value = '';
+      els.exerciseImages.value = '';
+      pendingConfigs = [];
+      renderConfigs();
+    }
+
+    async function startSession() {
+      state.currentSession.date = todayKey();
+      state.currentSession.startTime = nowIso();
+      state.currentSession.endTime = null;
+      const bw = numberOrNull(els.bodyweightInput.value);
+      if (bw !== null) state.currentSession.bodyweight = bw;
+      await persistAndRender();
+    }
+
+    async function endSession() {
+      state.currentSession.endTime = nowIso();
+      if (state.currentSession.exercises.length > 0) addCompletedDate(state.currentSession.date || todayKey());
+      await persistAndRender();
+    }
+
+    async function archiveSessionFromButton() {
+      const archived = archiveCurrentSession();
+      if (!archived) return alert('No hay datos en la sesión actual para guardar en historial.');
+      createNewCurrentSession();
+      await persistAndRender();
+    }
+
+    function archiveCurrentSession() {
+      const session = state.currentSession;
+      if (!hasSessionContent(session)) return false;
+      const copy = JSON.parse(JSON.stringify(session));
+      copy.archivedAt = nowIso();
+      state.historySessions.unshift(copy);
+      if (copy.exercises.length > 0) addCompletedDate(copy.date || todayKey());
+      return true;
+    }
+
+    function createNewCurrentSession() {
+      state.currentSession = { id: cryptoId(), date: todayKey(), startTime: null, endTime: null, bodyweight: null, exercises: [] };
+      pendingConfigs = [];
+      clearExerciseForm();
+    }
+
+    async function createFreshSession() {
+      const hasData = hasSessionContent(state.currentSession);
+      if (hasData) {
+        const savePrevious = confirm('La sesión actual tiene datos. ¿Quieres guardarla en el historial antes de crear una nueva?');
+        if (savePrevious) archiveCurrentSession();
+      }
+      createNewCurrentSession();
+      await persistAndRender();
+    }
+
+    async function clearCurrentSessionExercises() {
+      const ok = confirm('Se borrarán solo los ejercicios de la sesión actual. El historial queda intacto.');
+      if (!ok) return;
+      state.currentSession.exercises = [];
+      state.currentSession.startTime = null;
+      state.currentSession.endTime = null;
+      state.currentSession.bodyweight = null;
+      pendingConfigs = [];
+      clearExerciseForm();
+      await persistAndRender();
+    }
+
+    function getSortedExercises() {
+      const copy = [...state.currentSession.exercises];
+      if (state.ui.sortMode === 'status') copy.sort((a, b) => Number(a.done) - Number(b.done) || (a.order ?? 999) - (b.order ?? 999));
+      else copy.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || new Date(a.createdAt) - new Date(b.createdAt));
+      return copy;
+    }
+
+    function renderExercises() {
+      const list = els.exerciseList;
+      list.innerHTML = '';
+      const items = getSortedExercises();
+      if (!items.length) return void(list.innerHTML = '<div class="muted">Todavía no agregas ejercicios para esta sesión.</div>');
+      items.forEach(ex => {
+        const card = document.createElement('div');
+        card.className = `exercise-card ${ex.done ? 'done' : ''}`;
+        card.innerHTML = exerciseCardHtml(ex, true);
+        list.appendChild(card);
+      });
+      bindExerciseCardEvents(list, true);
+    }
+
+    function exerciseCardHtml(ex, isCurrentSession) {
+      const configHtml = ex.configs?.length ? ex.configs.map(c => `<div class="config-item"><strong>${escapeHtml(c.key)}</strong><div>${escapeHtml(c.value)}</div></div>`).join('') : '<div class="muted small">Sin configuración de máquina.</div>';
+      const metrics = [
+        { label: 'Peso', value: ex.weight !== null ? `${ex.weight} kg` : '—' },
+        { label: 'Repeticiones', value: ex.reps ?? '—' },
+        { label: 'Series', value: ex.sets ?? '—' },
+        { label: isCurrentSession ? 'Realizado' : 'Último registro', value: ex.doneAt ? formatDateTime(ex.doneAt) : 'Pendiente' }
+      ];
+      const photos = ex.images?.length ? `<div class="photo-grid">${ex.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" />${isCurrentSession ? `<button data-remove-photo="${ex.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>` : '<div class="muted small" style="margin-top:12px;">Sin imágenes referenciales.</div>';
+      return `
+        <div class="exercise-top">
+          <div>
+            <div class="exercise-title">
+              <span class="badge">#${ex.order ?? '-'}</span>
+              <strong>${escapeHtml(ex.name)}</strong>
+              ${ex.done ? '<span class="badge done-tag">Hecho</span>' : ''}
+              ${!isCurrentSession ? '<span class="badge history-tag">Histórico</span>' : ''}
+            </div>
+            <div class="muted small" style="margin-top:6px;">Creado ${new Date(ex.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</div>
+          </div>
+          <div class="exercise-actions">
+            ${isCurrentSession ? `<button class="btn-primary" data-toggle-done="${ex.id}">${ex.done ? 'Desmarcar' : 'Completar'}</button><button class="btn-muted" data-move-up="${ex.id}">Subir</button><button class="btn-muted" data-move-down="${ex.id}">Bajar</button><button class="btn-danger" data-delete="${ex.id}">Eliminar</button>` : `<button class="btn-primary" data-copy-exercise="${encodeURIComponent(JSON.stringify(ex))}">Copiar a sesión actual</button>`}
+          </div>
+        </div>
+        <div class="metrics-grid">${metrics.map(m => `<div class="metric-item"><strong>${m.label}</strong><div>${m.value}</div></div>`).join('')}</div>
+        <div style="margin-top:12px;"><strong class="muted small">Configuración de máquina</strong><div class="config-grid" style="margin-top:8px;">${configHtml}</div></div>
+        <div style="margin-top:12px;"><strong class="muted small">Notas</strong><div style="margin-top:6px;">${ex.notes ? escapeHtml(ex.notes) : '<span class="muted">Sin notas.</span>'}</div></div>
+        <div style="margin-top:12px;"><strong class="muted small">Imágenes</strong>${photos}</div>`;
+    }
+
+    function bindExerciseCardEvents(scopeEl, isCurrentSession) {
+      if (isCurrentSession) {
+        scopeEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', async () => toggleDone(btn.dataset.toggleDone)));
+        scopeEl.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', async () => deleteExercise(btn.dataset.delete)));
+        scopeEl.querySelectorAll('[data-move-up]').forEach(btn => btn.addEventListener('click', async () => moveExercise(btn.dataset.moveUp, -1)));
+        scopeEl.querySelectorAll('[data-move-down]').forEach(btn => btn.addEventListener('click', async () => moveExercise(btn.dataset.moveDown, 1)));
+        scopeEl.querySelectorAll('[data-remove-photo]').forEach(btn => btn.addEventListener('click', async () => {
+          const [id, idx] = btn.dataset.removePhoto.split('|');
+          await removePhoto(id, Number(idx));
+        }));
+      } else {
+        scopeEl.querySelectorAll('[data-copy-exercise]').forEach(btn => btn.addEventListener('click', async () => copyExerciseToCurrent(JSON.parse(decodeURIComponent(btn.dataset.copyExercise)))));
+      }
+    }
+
+    async function toggleDone(id) {
+      const ex = state.currentSession.exercises.find(x => x.id === id);
+      if (!ex) return;
+      ex.done = !ex.done;
+      ex.doneAt = ex.done ? nowIso() : null;
+      await persistAndRender();
+    }
+
+    async function deleteExercise(id) {
+      state.currentSession.exercises = state.currentSession.exercises.filter(x => x.id !== id);
+      await persistAndRender();
+    }
+
+    async function moveExercise(id, direction) {
+      const ordered = [...state.currentSession.exercises].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+      const index = ordered.findIndex(x => x.id === id);
+      if (index < 0) return;
+      const target = index + direction;
+      if (target < 0 || target >= ordered.length) return;
+      const currentOrder = ordered[index].order;
+      ordered[index].order = ordered[target].order;
+      ordered[target].order = currentOrder;
+      await persistAndRender();
+    }
+
+    async function removePhoto(id, photoIndex) {
+      const ex = state.currentSession.exercises.find(x => x.id === id);
+      if (!ex || !Array.isArray(ex.images)) return;
+      ex.images = ex.images.filter((_, idx) => idx !== photoIndex);
+      await persistAndRender();
+    }
+
+    async function copyExerciseToCurrent(exercise) {
+      const copy = JSON.parse(JSON.stringify(exercise));
+      copy.id = cryptoId();
+      copy.order = nextOrder();
+      copy.done = false;
+      copy.doneAt = null;
+      copy.createdAt = nowIso();
+      state.currentSession.exercises.push(copy);
+      await persistAndRender();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderHistory() {
+      const list = els.historyList;
+      list.innerHTML = '';
+      els.historyCountLabel.textContent = `${state.historySessions.length} sesiones guardadas`;
+      if (!state.historySessions.length) return void(list.innerHTML = '<div class="muted">Todavía no hay sesiones en el historial.</div>');
+      state.historySessions.forEach(session => {
+        const card = document.createElement('div');
+        card.className = 'history-card';
+        const doneCount = session.exercises.filter(x => x.done).length;
+        card.innerHTML = `
+          <div class="history-top">
+            <div>
+              <div class="exercise-title"><span class="badge history-tag">${escapeHtml(formatFullDate(session.date))}</span><strong>${session.exercises.length} ejercicios</strong></div>
+              <div class="muted small" style="margin-top:6px;">Inicio ${formatDateTime(session.startTime)} · Fin ${formatDateTime(session.endTime)} · Peso ${session.bodyweight !== null ? `${session.bodyweight} kg` : '—'} · Completados ${doneCount}/${session.exercises.length}</div>
+            </div>
+            <div class="toolbar-wrap"><button class="btn-muted" data-repeat-session="${session.id}">Copiar sesión completa</button><button class="btn-danger" data-delete-history="${session.id}">Eliminar</button></div>
+          </div>
+          <details><summary>Ver ejercicios</summary><div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">${session.exercises.map(ex => `<div class="exercise-card ${ex.done ? 'done' : ''}">${exerciseCardHtml(ex, false)}</div>`).join('')}</div></details>`;
+        list.appendChild(card);
+      });
+      list.querySelectorAll('[data-delete-history]').forEach(btn => btn.addEventListener('click', async () => deleteHistorySession(btn.dataset.deleteHistory)));
+      list.querySelectorAll('[data-repeat-session]').forEach(btn => btn.addEventListener('click', async () => repeatSession(btn.dataset.repeatSession)));
+      bindExerciseCardEvents(list, false);
+    }
+
+    async function deleteHistorySession(id) {
+      const ok = confirm('Se eliminará esta sesión del historial.');
+      if (!ok) return;
+      state.historySessions = state.historySessions.filter(x => x.id !== id);
+      rebuildCompletedDates();
+      await persistAndRender();
+    }
+
+    async function repeatSession(sessionId) {
+      const session = state.historySessions.find(x => x.id === sessionId);
+      if (!session) return;
+      session.exercises.forEach(exercise => {
+        const copy = JSON.parse(JSON.stringify(exercise));
+        copy.id = cryptoId();
+        copy.order = nextOrder();
+        copy.done = false;
+        copy.doneAt = null;
+        copy.createdAt = nowIso();
+        state.currentSession.exercises.push(copy);
+      });
+      await persistAndRender();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function rebuildCompletedDates() {
+      state.completedDates = [...new Set(state.historySessions.filter(s => s.exercises?.length).map(s => s.date))];
+      if (state.currentSession.exercises.length > 0 && state.currentSession.endTime) addCompletedDate(state.currentSession.date);
+    }
+
+    async function moveCalendar(offset) {
+      let month = state.ui.calendarMonth + offset;
+      let year = state.ui.calendarYear;
+      if (month < 0) { month = 11; year -= 1; }
+      else if (month > 11) { month = 0; year += 1; }
+      state.ui.calendarMonth = month;
+      state.ui.calendarYear = year;
+      await persistAndRender();
+    }
+
+    function renderCalendar() {
+      const year = state.ui.calendarYear;
+      const month = state.ui.calendarMonth;
+      const monthDate = new Date(year, month, 1);
+      const monthName = monthDate.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+      els.calendarTitle.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      const weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      let startOffset = firstDay.getDay();
+      startOffset = startOffset === 0 ? 6 : startOffset - 1;
+      const today = todayKey();
+      const cells = [];
+      weekdays.forEach(day => cells.push(`<div class="cal-head">${day}</div>`));
+      for (let i = 0; i < startOffset; i++) cells.push('<div class="cal-day" style="opacity:.35"></div>');
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const done = state.completedDates.includes(key);
+        const isToday = key === today;
+        cells.push(`<div class="cal-day ${done ? 'done' : ''} ${isToday ? 'today' : ''}" title="${formatDateKey(key)}"><div>${day}</div>${done ? '<div class="cal-dot"></div>' : ''}</div>`);
+      }
+      els.calendar.innerHTML = cells.join('');
+    }
+
+    function nextOrder() {
+      const exercises = state.currentSession.exercises;
+      if (!exercises.length) return 1;
+      return Math.max(...exercises.map(x => x.order || 0)) + 1;
+    }
+
+    function numberOrNull(value) {
+      if (value === '' || value === null || value === undefined) return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function cryptoId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'id_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    }
+
+    async function prepareImages(files) {
+      const prepared = [];
+      for (const file of files) prepared.push(await compressImage(file, 1400, 0.82));
+      return prepared;
+    }
+
+    function compressImage(file, maxSize = 1400, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+            if (width > height && width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
+            else if (height >= width && height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gym-tracker-backup-${todayKey()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        const ok = confirm('Esto reemplazará los datos actuales por el respaldo importado.');
+        if (!ok) return;
+        state = normalizeState(imported);
+        rebuildCompletedDates();
+        await persistAndRender();
+      } catch (error) {
+        console.error(error);
+        alert('No se pudo importar el archivo. Verifica que sea un respaldo válido.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        els.installStatus.textContent = 'Este navegador no soporta service workers';
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.register('./sw.js');
+        if (registration.waiting) els.installStatus.textContent = 'Hay una actualización disponible. Recarga la app.';
+      } catch (error) {
+        console.error(error);
+        els.installStatus.textContent = 'No se pudo registrar el service worker';
+      }
+    }
+
+    function updateInstallHint() {
+      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      if (!isSecure) {
+        els.installStatus.textContent = 'Necesita HTTPS o localhost para instalación real';
+      } else if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+        els.installStatus.textContent = 'La app ya está instalada';
+        els.installBtn.disabled = true;
+      } else {
+        els.installStatus.textContent = 'Publicada en contexto seguro. Chrome mostrará la opción al detectar instalabilidad.';
+      }
+    }
+
+    async function installApp() {
+      if (!deferredPrompt) return alert('Chrome aún no habilita la instalación. A veces aparece en el menú ⋮ > Instalar app.');
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      els.installBtn.disabled = true;
+    }
+  </script>
+</body>
+</html>
