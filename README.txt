@@ -1,26 +1,22 @@
-Gym Tracker PWA (actualizado)
+Gym Tracker PWA
 
-Archivos:
+Archivos incluidos:
 - index.html
 - manifest.webmanifest
 - sw.js
 - icon-192.png
 - icon-512.png
 
-Cambios incluidos:
-- Nombre visible simplificado a Gym Tracker
-- Configuración de máquina marcada como opcional
-- Mensaje "Sin configuración de máquina / no aplica"
-- Rutinas guardadas separadas de las sesiones
-- Selección de rutina antes de empezar
-- Historial, respaldo e instalación PWA
+Cambios de esta versión:
+- nombre de la app: Gym Tracker
+- rutinas guardadas
+- configuración de máquina opcional
+- campo Tiempo (opcional) en ejercicios
+- mini visor para ampliar imágenes al tocarlas
+- caché del service worker actualizada a v4
 
 Publicación rápida en GitHub Pages:
-1) Entra a tu repo.
-2) Sube estos archivos a la raíz del repo reemplazando los anteriores.
-3) Espera a que GitHub Pages vuelva a publicar el sitio.
-4) En el teléfono, recarga la URL publicada.
-5) Si el teléfono sigue mostrando la versión antigua, cierra la app instalada y vuelve a abrir la URL en Chrome.
-
-Nota:
-- El service worker quedó en v3 para forzar mejor actualización del caché.
+1. Sube estos archivos a la raíz del repo.
+2. En Settings > Pages, usa Deploy from a branch.
+3. Selecciona main y /(root).
+4. Abre la URL HTTPS en Chrome Android.

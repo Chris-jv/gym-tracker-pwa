@@ -322,7 +322,7 @@
 
     .config-grid, .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
       margin-top: 10px;
     }
@@ -453,6 +453,24 @@
 
     .hidden { display: none !important; }
 
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.92);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    }
+
     @media (max-width: 950px) {
       .grid-2, .summary, .config-grid, .metrics-grid { grid-template-columns: 1fr 1fr; }
     }
@@ -552,18 +570,19 @@
         </div>
 
         <div class="row">
-          <div class="field" style="grid-column: span 4;"><label for="exerciseOrder">Orden</label><input id="exerciseOrder" type="number" min="1" step="1" placeholder="1" /></div>
-          <div class="field" style="grid-column: span 4;"><label for="exerciseWeight">Peso</label><input id="exerciseWeight" type="number" step="0.5" placeholder="Ej: 35" /></div>
-          <div class="field" style="grid-column: span 4;"><label for="exerciseReps">Repeticiones</label><input id="exerciseReps" type="number" min="1" step="1" placeholder="12" /></div>
+          <div class="field" style="grid-column: span 3;"><label for="exerciseOrder">Orden (opcional)</label><input id="exerciseOrder" type="number" min="1" step="1" placeholder="1" /></div>
+          <div class="field" style="grid-column: span 3;"><label for="exerciseWeight">Peso (opcional)</label><input id="exerciseWeight" type="number" step="0.5" placeholder="Ej: 35" /></div>
+          <div class="field" style="grid-column: span 3;"><label for="exerciseReps">Repeticiones (opcional)</label><input id="exerciseReps" type="number" min="1" step="1" placeholder="12" /></div>
+          <div class="field" style="grid-column: span 3;"><label for="exerciseTime">Tiempo (opcional)</label><input id="exerciseTime" type="text" placeholder="Ej: 45 seg o 2 min" /></div>
         </div>
 
         <div class="row">
-          <div class="field" style="grid-column: span 6;"><label for="exerciseSets">Series</label><input id="exerciseSets" type="number" min="1" step="1" placeholder="4" /></div>
+          <div class="field" style="grid-column: span 6;"><label for="exerciseSets">Series (opcional)</label><input id="exerciseSets" type="number" min="1" step="1" placeholder="4" /></div>
           <div class="field" style="grid-column: span 6;"><label for="bodyweightInput">Peso corporal (opcional)</label><input id="bodyweightInput" type="number" step="0.1" placeholder="Ej: 82.4" /></div>
         </div>
 
         <div class="field">
-          <label for="exerciseNotes">Notas</label>
+          <label for="exerciseNotes">Notas (opcional)</label>
           <textarea id="exerciseNotes" placeholder="Ej: no bloquear rodillas, tempo lento, probar subir peso la próxima sesión"></textarea>
         </div>
 
@@ -580,6 +599,7 @@
         <h3>Imágenes referenciales</h3>
         <p class="muted small">Las imágenes se comprimen antes de guardarse para ocupar menos espacio en el teléfono.</p>
         <input id="exerciseImages" type="file" accept="image/*" multiple />
+        <p class="muted small">Toca cualquier imagen guardada para verla en grande.</p>
 
         <div class="spacer"></div>
         <button class="btn-primary btn-block" id="saveExerciseBtn">Guardar ejercicio</button>
@@ -620,6 +640,11 @@
     </section>
   </div>
 
+  <div id="imageLightbox" class="lightbox hidden">
+    <button id="closeLightboxBtn" class="btn-danger" style="position:absolute; top:14px; right:14px; z-index:2;">Cerrar</button>
+    <img id="lightboxImage" alt="Imagen ampliada" />
+  </div>
+
   <script>
     const DB_NAME = 'gymTrackerOfflineDB';
     const DB_VERSION = 1;
@@ -636,6 +661,7 @@
       exerciseOrder: document.getElementById('exerciseOrder'),
       exerciseWeight: document.getElementById('exerciseWeight'),
       exerciseReps: document.getElementById('exerciseReps'),
+      exerciseTime: document.getElementById('exerciseTime'),
       exerciseSets: document.getElementById('exerciseSets'),
       bodyweightInput: document.getElementById('bodyweightInput'),
       exerciseNotes: document.getElementById('exerciseNotes'),
@@ -664,6 +690,9 @@
       installStatus: document.getElementById('installStatus'),
       runtimeStatus: document.getElementById('runtimeStatus'),
       installBtn: document.getElementById('installBtn'),
+      imageLightbox: document.getElementById('imageLightbox'),
+      lightboxImage: document.getElementById('lightboxImage'),
+      closeLightboxBtn: document.getElementById('closeLightboxBtn'),
       exportBtn: document.getElementById('exportBtn'),
       importBtn: document.getElementById('importBtn'),
       importFile: document.getElementById('importFile')
@@ -686,6 +715,13 @@
     els.installBtn.addEventListener('click', installApp);
     els.saveRoutineBtn.addEventListener('click', saveCurrentSessionAsRoutine);
     els.clearSelectedRoutineBtn.addEventListener('click', async () => clearSelectedRoutine());
+    els.closeLightboxBtn.addEventListener('click', closeLightbox);
+    els.imageLightbox.addEventListener('click', event => {
+      if (event.target === els.imageLightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeLightbox();
+    });
 
     window.addEventListener('beforeinstallprompt', event => {
       event.preventDefault();
@@ -911,6 +947,7 @@
       const order = numberOrNull(els.exerciseOrder.value);
       const weight = numberOrNull(els.exerciseWeight.value);
       const reps = numberOrNull(els.exerciseReps.value);
+      const time = els.exerciseTime.value.trim() || null;
       const sets = numberOrNull(els.exerciseSets.value);
       const bodyweight = numberOrNull(els.bodyweightInput.value);
       const notes = els.exerciseNotes.value.trim();
@@ -922,6 +959,7 @@
         order: order ?? nextOrder(),
         weight,
         reps,
+        time,
         sets,
         notes,
         configs: [...pendingConfigs],
@@ -939,6 +977,7 @@
       els.exerciseOrder.value = '';
       els.exerciseWeight.value = '';
       els.exerciseReps.value = '';
+      els.exerciseTime.value = '';
       els.exerciseSets.value = '';
       els.exerciseNotes.value = '';
       els.exerciseImages.value = '';
@@ -1168,12 +1207,13 @@
       const metrics = [
         { label: 'Peso', value: exercise.weight !== null ? `${exercise.weight} kg` : '—' },
         { label: 'Repeticiones', value: exercise.reps ?? '—' },
+        { label: 'Tiempo', value: exercise.time || '—' },
         { label: 'Series', value: exercise.sets ?? '—' },
         { label: isCurrentSession ? 'Realizado' : isRoutine ? 'Orden base' : 'Último registro', value: isCurrentSession ? (exercise.doneAt ? formatDateTime(exercise.doneAt) : 'Pendiente') : isRoutine ? (exercise.order ?? '—') : (exercise.doneAt ? formatDateTime(exercise.doneAt) : 'Pendiente') }
       ];
 
       const photos = exercise.images?.length
-        ? `<div class="photo-grid">${exercise.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" />${isCurrentSession ? `<button data-remove-photo="${exercise.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>`
+        ? `<div class="photo-grid">${exercise.images.map((img, idx) => `<div class="photo"><img src="${img}" alt="Referencia ${idx + 1}" data-fullsrc="${img}" style="cursor:zoom-in;" />${isCurrentSession ? `<button data-remove-photo="${exercise.id}|${idx}">✕</button>` : ''}</div>`).join('')}</div>`
         : '<div class="muted small" style="margin-top:12px;">Sin imágenes referenciales.</div>';
 
       const modeBadge = isCurrentSession
@@ -1206,6 +1246,13 @@
     }
 
     function bindExerciseCardEvents(scopeEl, mode) {
+      scopeEl.querySelectorAll('img[data-fullsrc]').forEach(img => {
+        img.addEventListener('click', event => {
+          event.stopPropagation();
+          openLightbox(img.dataset.fullsrc);
+        });
+      });
+
       if (mode === 'current') {
         scopeEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', async () => toggleDone(btn.dataset.toggleDone)));
         scopeEl.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', async () => deleteExercise(btn.dataset.delete)));
@@ -1218,6 +1265,17 @@
       } else {
         scopeEl.querySelectorAll('[data-copy-exercise]').forEach(btn => btn.addEventListener('click', async () => copyExerciseToCurrent(JSON.parse(decodeURIComponent(btn.dataset.copyExercise)))));
       }
+    }
+
+    function openLightbox(src) {
+      if (!src) return;
+      els.lightboxImage.src = src;
+      els.imageLightbox.classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      els.imageLightbox.classList.add('hidden');
+      els.lightboxImage.src = '';
     }
 
     async function toggleDone(id) {
@@ -1567,8 +1625,9 @@
         const normalized = normalizeState({ currentSession: { exercises: [{ id: '1' }] }, routines: [{ id: 'r1', name: 'Pierna', exercises: [] }] });
         assert(Array.isArray(normalized.currentSession.exercises), 'normalizeState conserva exercises');
         assert(Array.isArray(normalized.routines), 'normalizeState conserva rutinas');
-        const template = templateExercisesFromSession([{ id: 'a', name: 'Press', order: 3, done: true, doneAt: nowIso(), createdAt: nowIso(), configs: [], images: [] }]);
+        const template = templateExercisesFromSession([{ id: 'a', name: 'Press', order: 3, time: '45 seg', done: true, doneAt: nowIso(), createdAt: nowIso(), configs: [], images: [] }]);
         assert(template[0].done === false, 'las rutinas no guardan ejercicios como completados');
+        assert(template[0].time === '45 seg', 'las rutinas conservan el tiempo del ejercicio');
         const cloned = cloneExercisesForSession([{ id: 'a', name: 'Press', order: 2, configs: [], images: [], createdAt: nowIso() }], 5);
         assert(cloned[0].order === 5, 'cloneExercisesForSession renumera desde el orden indicado');
         assert(isLikelyPreviewContext() === ['about:', 'blob:', 'data:'].includes(location.protocol), 'detección de preview consistente');
