@@ -1,6 +1,6 @@
 {
   "id": "/gym-tracker/",
-  "name": "Gym Tracker Offline+",
+  "name": "Gym Tracker",
   "short_name": "Gym Tracker",
   "description": "Registro offline de rutinas de gimnasio con historial, imágenes y calendario.",
   "lang": "es-CL",
@@ -10,7 +10,12 @@
   "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "categories": ["health", "fitness", "sports", "productivity"],
+  "categories": [
+    "health",
+    "fitness",
+    "sports",
+    "productivity"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {

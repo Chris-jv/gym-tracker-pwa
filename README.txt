@@ -1,4 +1,4 @@
-Gym Tracker Offline+ PWA
+Gym Tracker PWA (actualizado)
 
 Archivos:
 - index.html
@@ -7,25 +7,20 @@ Archivos:
 - icon-192.png
 - icon-512.png
 
-Opciones rápidas de publicación:
-1) GitHub Pages
-   - Crea un repositorio nuevo.
-   - Sube todos estos archivos a la raíz.
-   - En Settings > Pages, activa Deploy from a branch.
-   - Elige main y /(root).
-   - Espera a que quede publicado en https://TU-USUARIO.github.io/TU-REPO/
+Cambios incluidos:
+- Nombre visible simplificado a Gym Tracker
+- Configuración de máquina marcada como opcional
+- Mensaje "Sin configuración de máquina / no aplica"
+- Rutinas guardadas separadas de las sesiones
+- Selección de rutina antes de empezar
+- Historial, respaldo e instalación PWA
 
-2) Netlify Drop
-   - Entra a app.netlify.com/drop
-   - Arrastra la carpeta o el ZIP descomprimido.
-   - Te entregará una URL HTTPS inmediata.
+Publicación rápida en GitHub Pages:
+1) Entra a tu repo.
+2) Sube estos archivos a la raíz del repo reemplazando los anteriores.
+3) Espera a que GitHub Pages vuelva a publicar el sitio.
+4) En el teléfono, recarga la URL publicada.
+5) Si el teléfono sigue mostrando la versión antigua, cierra la app instalada y vuelve a abrir la URL en Chrome.
 
-Instalación en Android:
-- Abre la URL HTTPS en Chrome.
-- Espera unos segundos y recarga una vez si hace falta.
-- Si aparece el botón "Instalar app", úsalo.
-- Si no, usa Chrome > menú ⋮ > "Instalar app" o "Agregar a pantalla principal".
-
-Notas:
-- Los datos quedan guardados por sitio/origen. Si cambias de URL, no comparte la misma base local.
-- Usa Exportar respaldo cada cierto tiempo.
+Nota:
+- El service worker quedó en v3 para forzar mejor actualización del caché.

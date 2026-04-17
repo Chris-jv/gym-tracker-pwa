@@ -9,7 +9,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="application-name" content="Gym Tracker" />
   <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
-  <title>Gym Tracker Offline+</title>
+  <title>Gym Tracker</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icon-192.png" sizes="192x192" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
@@ -473,7 +473,7 @@
     <section class="hero">
       <div class="hero-top">
         <div>
-          <h1>Gym Tracker Offline+</h1>
+          <h1>Gym Tracker</h1>
           <p>Registro offline de rutinas con historial persistente, imágenes, sesiones y una biblioteca separada de rutinas para elegir antes de empezar a entrenar.</p>
         </div>
         <div class="install-box">
@@ -568,8 +568,8 @@
         </div>
 
         <div class="spacer"></div>
-        <h3>Configuración de máquina</h3>
-        <p class="muted small">Puedes ir agregando campos como respaldo, asiento, rodilla, tobillo o cualquier otro ajuste.</p>
+        <h3>Configuración de máquina (opcional)</h3>
+        <p class="muted small">Opcional: úsalo solo para ejercicios con máquina. Puedes agregar campos como respaldo, asiento, rodilla, tobillo o cualquier otro ajuste si aplica.</p>
         <div class="row">
           <div class="field" style="grid-column: span 5;"><label for="configKey">Nombre del ajuste</label><input id="configKey" placeholder="Ej: Respaldo" /></div>
           <div class="field" style="grid-column: span 5;"><label for="configValue">Valor</label><input id="configValue" placeholder="Ej: 5" /></div>
@@ -1163,7 +1163,7 @@
 
       const configHtml = exercise.configs?.length
         ? exercise.configs.map(config => `<div class="config-item"><strong>${escapeHtml(config.key)}</strong><div>${escapeHtml(config.value)}</div></div>`).join('')
-        : '<div class="muted small">Sin configuración de máquina.</div>';
+        : '<div class="muted small">Sin configuración de máquina / no aplica.</div>';
 
       const metrics = [
         { label: 'Peso', value: exercise.weight !== null ? `${exercise.weight} kg` : '—' },
@@ -1200,7 +1200,7 @@
           <div class="exercise-actions">${actionButtons}</div>
         </div>
         <div class="metrics-grid">${metrics.map(metric => `<div class="metric-item"><strong>${metric.label}</strong><div>${metric.value}</div></div>`).join('')}</div>
-        <div style="margin-top:12px;"><strong class="muted small">Configuración de máquina</strong><div class="config-grid" style="margin-top:8px;">${configHtml}</div></div>
+        <div style="margin-top:12px;"><strong class="muted small">Configuración de máquina (opcional)</strong><div class="config-grid" style="margin-top:8px;">${configHtml}</div></div>
         <div style="margin-top:12px;"><strong class="muted small">Notas</strong><div style="margin-top:6px;">${exercise.notes ? escapeHtml(exercise.notes) : '<span class="muted">Sin notas.</span>'}</div></div>
         <div style="margin-top:12px;"><strong class="muted small">Imágenes</strong>${photos}</div>`;
     }

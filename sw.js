@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gym-tracker-offline-v2';
+const CACHE_NAME = 'gym-tracker-offline-v3';
 const APP_SHELL = [
   './',
   './index.html',
